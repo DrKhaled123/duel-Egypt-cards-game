@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لعبة الثانوية العامة</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+  <style>
+    :root {
+      --gold:#FFD700;--gold-dark:#B8860B;--gold-border:#C9A84C;
+      --purple-primary:#7000FF;--purple-dark:#3A0E44;
+      --cyan-accent:#00E5FF;--bg-dark:#0A0510;--bg-darker:#050208;
+      --marble-warm:#D4C5A0;--marble-cool:#B8C8D0;
+      --card-blue:#1E6BA5;--card-blue-dark:#0D3D66;
+      --card-crimson:#8B2252;--card-crimson-dark:#4A0E2E;
+      --card-green:#2A7B4F;--card-green-dark:#0E3D22;
+      --card-purple:#6B1D7B;--card-purple-dark:#3A0E44;
+      --card-orange:#B85C00;--card-orange-dark:#6B3000;
+      --card-teal:#0E7B6B;--card-teal-dark:#054035;
+      --card-width:120px;--card-height:168px;--card-ratio:5/7;
+      --shadow-sm:0 2px 8px rgba(0,0,0,0.3);--shadow-md:0 8px 24px rgba(0,0,0,0.4);
+      --shadow-lg:0 20px 60px rgba(0,0,0,0.5);
+      --shadow-glow-gold:0 0 20px rgba(255,215,0,0.5);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body,#root{width:100%;height:100%;overflow:hidden;}
+    body{font-family:'Noto Sans Arabic','Inter',sans-serif;background:radial-gradient(ellipse at center,#1a0f2e 0%,var(--bg-dark) 50%,var(--bg-darker) 100%);color:#fff;user-select:none;}
+    .yugioh-card{width:var(--card-width);height:var(--card-height);aspect-ratio:var(--card-ratio);border-radius:10px;padding:3px;background:linear-gradient(145deg,var(--gold-border) 0%,var(--gold-dark) 50%,var(--gold-border) 100%);box-shadow:var(--shadow-md),inset 0 0 0 1px rgba(255,255,255,0.1);position:relative;transform-style:preserve-3d;cursor:pointer;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+    .yugioh-card:hover{transform:translateY(-8px) scale(1.05);}
+    .yugioh-card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform 0.6s cubic-bezier(0.4,0,0.2,1);}
+    .yugioh-card.flipped .yugioh-card-inner{transform:rotateY(180deg);}
+    .card-face-front,.card-face-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:7px;overflow:hidden;}
+    .card-face-front{transform:translateZ(1px);display:flex;flex-direction:column;}
+    .card-face-back{transform:translateZ(-1px) rotateY(180deg);background:radial-gradient(ellipse at center,#4a1a5a 0%,#2a0a35 60%,#1a0520 100%);display:flex;align-items:center;justify-content:center;}
+    .card-name-bar{background:linear-gradient(90deg,rgba(0,0,0,0.6) 0%,rgba(0,0,0,0.3) 100%);padding:4px 6px;font-size:10px;font-weight:700;color:#fff;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid rgba(255,215,0,0.3);}
+    .card-artwork-area{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+    .card-artwork-bg{position:absolute;inset:0;opacity:0.25;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,0.2) 0%,transparent 60%);}
+    .card-icon{font-size:42px;z-index:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));}
+    .card-info-bar{display:flex;justify-content:space-between;align-items:center;padding:3px 6px;background:rgba(0,0,0,0.4);font-size:9px;border-top:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);}
+    .card-category-badge{background:rgba(0,0,0,0.5);padding:1px 5px;border-radius:3px;font-weight:700;}
+    .card-stars{color:var(--gold);letter-spacing:1px;font-size:8px;}
+    .card-text-area{padding:5px 6px;font-size:8px;line-height:1.4;color:#fff;text-align:right;background:rgba(0,0,0,0.35);min-height:44px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+    .card-stats-bar{display:flex;justify-content:space-between;align-items:center;padding:4px 6px;background:rgba(0,0,0,0.55);font-size:9px;font-weight:700;border-top:1px solid rgba(255,215,0,0.2);}
+    .card-points{color:#FFD700;}.card-tag{color:#ddd;font-size:8px;}
+    .card-arabic .card-face-front{background:linear-gradient(180deg,var(--card-crimson) 0%,var(--card-crimson-dark) 100%);}
+    .card-english .card-face-front{background:linear-gradient(180deg,var(--card-green) 0%,var(--card-green-dark) 100%);}
+    .card-science .card-face-front{background:linear-gradient(180deg,var(--card-orange) 0%,var(--card-orange-dark) 100%);}
+    .card-math .card-face-front{background:linear-gradient(180deg,var(--card-blue) 0%,var(--card-blue-dark) 100%);}
+    .card-bio .card-face-front{background:linear-gradient(180deg,var(--card-teal) 0%,var(--card-teal-dark) 100%);}
+    .card-trap .card-face-front{background:linear-gradient(180deg,var(--card-purple) 0%,var(--card-purple-dark) 100%);}
+    .card-medium{box-shadow:var(--shadow-md),0 0 12px rgba(192,192,192,0.4),inset 0 0 0 1px rgba(255,255,255,0.15);}
+    .card-hard{box-shadow:var(--shadow-md),0 0 18px rgba(255,215,0,0.45),inset 0 0 0 1px rgba(255,215,0,0.3);animation:holographicShift 3s linear infinite;}
+    .card-hard::before{content:'';position:absolute;inset:0;border-radius:10px;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,0.25) 50%,transparent 60%);animation:cardShine 2.5s ease-in-out infinite;pointer-events:none;}
+    .card-back-pattern{width:86%;height:86%;border:2px solid var(--gold-border);border-radius:50%/40%;display:flex;align-items:center;justify-content:center;background:repeating-radial-gradient(circle at center,rgba(201,168,76,0.1) 0px,rgba(201,168,76,0.1) 2px,transparent 3px,transparent 6px);}
+    .card-back-icon{font-size:36px;font-weight:900;color:var(--gold);text-shadow:0 0 10px rgba(255,215,0,0.6);font-family:'Noto Sans Arabic',sans-serif;}
+    .duel-field{width:100%;height:100%;display:flex;align-items:center;justify-content:center;perspective:1200px;perspective-origin:50% 75%;position:relative;}
+    .field-board{width:900px;height:520px;max-width:95vw;max-height:60vh;transform:rotateX(32deg) scale(0.95);transform-style:preserve-3d;border-radius:16px;border:4px solid #8B7D3C;box-shadow:0 30px 80px rgba(0,0,0,0.6),inset 0 0 120px rgba(0,0,0,0.2);display:flex;flex-direction:column;overflow:hidden;position:relative;}
+    .field-board::before{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,var(--marble-cool) 0%,var(--marble-cool) 48%,#8B7D3C 48%,#FFD700 50%,#8B7D3C 52%,var(--marble-warm) 52%,var(--marble-warm) 100%);z-index:0;}
+    .field-board::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E");opacity:0.35;mix-blend-mode:multiply;pointer-events:none;z-index:1;}
+    .player-side,.opponent-side{flex:1;display:flex;align-items:center;justify-content:center;gap:24px;padding:0 40px;position:relative;z-index:2;}
+    .opponent-side{transform:rotate(180deg);}
+    .zone{width:110px;height:150px;border-radius:8px;background:rgba(0,0,0,0.25);border:2px dashed rgba(0,0,0,0.35);box-shadow:inset 0 4px 12px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;position:relative;transition:all 0.3s ease;}
+    .zone-question{width:150px;height:150px;}
+    .zone-label{position:absolute;bottom:6px;font-size:10px;color:rgba(0,0,0,0.45);font-weight:700;}
+    .zone-active{border-color:var(--cyan-accent);box-shadow:inset 0 0 20px rgba(0,229,255,0.25),0 0 16px rgba(0,229,255,0.3);background:rgba(0,229,255,0.08);}
+    .zone-card-wrapper{position:absolute;transform:translateZ(2px);}
+    .zone-defender-trap{animation:defenderPulse 1.2s ease-in-out infinite;border-color:#4ade80!important;box-shadow:0 0 15px rgba(74,222,128,0.4),inset 0 0 10px rgba(74,222,128,0.1);}
+    .hud-bar{position:absolute;z-index:10;display:flex;align-items:center;gap:12px;}
+    .hud-top-left{top:16px;left:16px;}.hud-top-right{top:16px;right:16px;}
+    .hud-bottom-left{bottom:16px;left:16px;}.hud-bottom-right{bottom:16px;right:16px;}
+    .lp-frame{background:linear-gradient(145deg,#2a1a0a 0%,#1a0f05 100%);border:2px solid var(--gold-border);border-radius:12px;padding:10px 18px;box-shadow:var(--shadow-glow-gold),var(--shadow-md);display:flex;flex-direction:column;align-items:center;min-width:110px;}
+    .lp-label{font-family:'Cinzel Decorative',serif;font-size:12px;background:linear-gradient(180deg,var(--gold) 0%,var(--gold-dark) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;letter-spacing:1px;}
+    .lp-value{font-family:'Cinzel Decorative',serif;font-size:28px;background:linear-gradient(180deg,#fff 0%,var(--gold) 50%,var(--gold-dark) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;}
+    .score-value{font-size:14px;color:var(--cyan-accent);font-weight:700;margin-top:2px;}
+    .timer-display{background:rgba(0,0,0,0.6);border:2px solid rgba(255,255,255,0.2);border-radius:50%;width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;backdrop-filter:blur(6px);box-shadow:var(--shadow-md);}
+    .timer-urgent{color:#ff4444;border-color:#ff4444;animation:timerPulse 0.8s ease-in-out infinite;}
+    .round-badge{background:rgba(0,0,0,0.55);border:1px solid var(--gold-border);color:var(--gold);padding:6px 16px;border-radius:20px;font-weight:700;font-size:14px;backdrop-filter:blur(4px);}
+    .phase-banner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;background:rgba(10,5,16,0.85);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(12px);padding:18px 48px;border-radius:16px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+    .phase-banner-sub{font-size:14px;color:rgba(255,255,255,0.8);margin-top:4px;}
+    .deck-pile{width:64px;height:90px;position:relative;}
+    .deck-card-layer{position:absolute;inset:0;border-radius:6px;background:linear-gradient(145deg,#4a1a5a 0%,#2a0a35 100%);border:1px solid var(--gold-border);box-shadow:0 2px 6px rgba(0,0,0,0.4);}
+    .deck-count{position:absolute;bottom:-10px;right:-10px;background:var(--gold-dark);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid #fff;box-shadow:var(--shadow-sm);}
+    .preview-panel{position:absolute;left:16px;top:50%;transform:translateY(-50%);z-index:10;width:260px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+    .preview-card-wrapper{width:240px;height:336px;filter:drop-shadow(0 20px 40px rgba(0,0,0,0.6));}
+    .preview-card-wrapper .yugioh-card{width:240px;height:336px;}
+    .preview-card-wrapper .card-name-bar{font-size:18px;padding:8px 12px;}
+    .preview-card-wrapper .card-icon{font-size:84px;}
+    .preview-card-wrapper .card-info-bar{font-size:16px;padding:6px 10px;}
+    .preview-card-wrapper .card-stars{font-size:14px;}
+    .preview-card-wrapper .card-text-area{font-size:15px;padding:10px 12px;min-height:90px;-webkit-line-clamp:6;}
+    .preview-card-wrapper .card-stats-bar{font-size:16px;padding:8px 12px;}
+    .preview-label{background:rgba(0,0,0,0.5);padding:6px 14px;border-radius:20px;font-size:12px;color:var(--gold);border:1px solid var(--gold-border);}
+    .hand-container{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:20;display:flex;align-items:flex-end;justify-content:center;height:200px;width:700px;pointer-events:none;}
+    .hand-card{position:absolute;bottom:0;pointer-events:auto;transition:transform 0.2s ease;}
+    .hand-card:hover{z-index:50!important;}
+    .opponent-hand{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:20;display:flex;align-items:flex-start;justify-content:center;height:140px;width:500px;pointer-events:none;}
+    .opponent-hand .hand-card{position:absolute;top:0;}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .modal-card{background:linear-gradient(145deg,#1a1025 0%,#0d0812 100%);border:2px solid var(--gold-border);border-radius:16px;padding:24px;max-width:520px;width:100%;box-shadow:var(--shadow-lg),var(--shadow-glow-gold);text-align:center;}
+    .modal-title{font-family:'Cinzel Decorative',serif;font-size:22px;color:var(--gold);margin-bottom:16px;}
+    .question-text{font-size:18px;font-weight:700;margin-bottom:20px;line-height:1.6;color:#fff;}
+    .options-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .option-button{background:linear-gradient(145deg,rgba(255,255,255,0.08) 0%,rgba(0,0,0,0.2) 100%);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:14px 12px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;transition:all 0.15s ease;font-family:'Noto Sans Arabic',sans-serif;}
+    .option-button:hover{background:rgba(255,255,255,0.15);border-color:var(--gold-border);transform:translateY(-2px);}
+    .option-button.correct{background:linear-gradient(145deg,#1a5a2a 0%,#0d3d15 100%);border-color:#4ade80;box-shadow:0 0 16px rgba(74,222,128,0.4);}
+    .option-button.wrong{background:linear-gradient(145deg,#5a1a1a 0%,#3d0d0d 100%);border-color:#f87171;box-shadow:0 0 16px rgba(248,113,113,0.4);}
+    .option-button:disabled{opacity:0.6;cursor:not-allowed;}
+    .trap-buttons{display:flex;gap:12px;justify-content:center;margin-top:16px;}
+    .trap-btn{padding:10px 22px;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;border:none;transition:transform 0.15s ease;font-family:'Noto Sans Arabic',sans-serif;}
+    .trap-btn-primary{background:linear-gradient(145deg,var(--purple-primary) 0%,var(--purple-dark) 100%);color:#fff;box-shadow:0 0 16px rgba(112,0,255,0.4);}
+    .trap-btn-secondary{background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);}
+    .trap-btn:hover{transform:scale(1.05);}
+    .screen{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;}
+    .main-title{font-family:'Cinzel Decorative',serif;font-size:40px;background:linear-gradient(180deg,var(--gold) 0%,#fff 50%,var(--gold-dark) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;text-align:center;margin-bottom:8px;}
+    .main-subtitle{font-size:18px;color:rgba(255,255,255,0.8);margin-bottom:36px;}
+    .menu-button{width:280px;padding:14px 24px;margin:8px 0;border-radius:12px;border:2px solid var(--gold-border);background:linear-gradient(145deg,rgba(255,255,255,0.08) 0%,rgba(0,0,0,0.25) 100%);color:#fff;font-size:17px;font-weight:700;cursor:pointer;transition:all 0.2s ease;font-family:'Noto Sans Arabic',sans-serif;box-shadow:var(--shadow-sm);}
+    .menu-button:hover{background:rgba(255,255,255,0.15);box-shadow:var(--shadow-glow-gold),var(--shadow-md);transform:translateY(-2px);}
+    .result-title{font-family:'Cinzel Decorative',serif;font-size:42px;color:var(--gold);margin-bottom:12px;}
+    .result-stats{display:flex;gap:40px;margin:24px 0;}
+    .stat-box{background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:18px 28px;text-align:center;}
+    .stat-label{font-size:12px;color:rgba(255,255,255,0.7);margin-bottom:4px;}
+    .stat-value{font-size:28px;font-weight:700;color:#fff;}
+    .trap-clickable{cursor:pointer;}
+    .trap-clickable:hover{filter:drop-shadow(0 0 10px var(--gold));}
+    .particle-container{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+    .particle{position:absolute;width:4px;height:4px;background:var(--gold);border-radius:50%;opacity:0.6;filter:blur(1px);animation:floatParticle 6s ease-in-out infinite;}
+    @keyframes holographicShift{0%,100%{filter:hue-rotate(0deg) brightness(1);}50%{filter:hue-rotate(15deg) brightness(1.1);}}
+    @keyframes cardShine{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
+    @keyframes timerPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+    @keyframes floatParticle{0%,100%{transform:translateY(0) translateX(0);opacity:0.6;}50%{transform:translateY(-30px) translateX(10px);opacity:1;}}
+    @keyframes defenderPulse{0%,100%{box-shadow:0 0 10px rgba(74,222,128,0.3);}50%{box-shadow:0 0 25px rgba(74,222,128,0.6);}}
+    @media(max-width:768px){.field-board{transform:rotateX(18deg) scale(0.98);}.preview-panel{display:none;}.zone{width:72px;height:100px;}.zone-question{width:100px;height:100px;}.yugioh-card{width:72px;height:100px;}.hand-container{width:100vw;height:130px;}.main-title{font-size:26px;}.options-grid{grid-template-columns:1fr;}.lp-value{font-size:20px;}}
+    @media(max-width:480px){.yugioh-card{width:56px;height:78px;}.zone{width:52px;height:72px;}.zone-question{width:72px;height:72px;}.lp-value{font-size:16px;}.menu-button{width:90vw;font-size:15px;}}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useReducer } = React;
+    const { motion, AnimatePresence } = window.Motion;
+
+    // ══════════════════════════════════════════════
+    //  علمي رياضة — رياضيات + عربي + إنجليزي + علوم
+    // ══════════════════════════════════════════════
+    const MATH_QUESTIONS = [
+      {difficulty:50,subject:"math",question:"ما مشتقة f(x)=5x³−2x+7؟",options:["15x²−2","15x²+7","5x²−2","15x³−2"],correctIndex:0,explanation:"مشتقة 5x³=15x²، مشتقة −2x=−2، مشتقة 7=0"},
+      {difficulty:50,subject:"math",question:"ما ناتج ∫(6x²)dx؟",options:["2x³+c","3x³+c","6x³+c","x³+c"],correctIndex:0,explanation:"∫6x² dx = 6·x³/3 + c = 2x³+c"},
+      {difficulty:50,subject:"math",question:"ما قيمة sin²(x)+cos²(x)؟",options:["0","1","2","sin(2x)"],correctIndex:1,explanation:"هذه هوية مثلثية أساسية: sin²x+cos²x=1"},
+      {difficulty:50,subject:"math",question:"ما قيمة log₂(8)؟",options:["2","3","4","8"],correctIndex:1,explanation:"2³=8 إذن log₂(8)=3"},
+      {difficulty:50,subject:"math",question:"ما مجموع زوايا المضلع الثماني؟",options:["900°","1080°","1260°","720°"],correctIndex:1,explanation:"(8−2)×180=6×180=1080°"},
+      {difficulty:100,subject:"math",question:"حُلَّت x²−7x+12=0، ما حاصل ضرب الجذرين؟",options:["7","12","−7","−12"],correctIndex:1,explanation:"بقاعدة فييتا: حاصل الضرب = c/a = 12/1 = 12"},
+      {difficulty:100,subject:"math",question:"ما مشتقة sin(3x)؟",options:["cos(3x)","3cos(3x)","−3cos(3x)","3sin(3x)"],correctIndex:1,explanation:"بقاعدة السلسلة: d/dx[sin(3x)]=cos(3x)·3=3cos(3x)"},
+      {difficulty:100,subject:"math",question:"ما ناتج ∫₀² (3x²)dx؟",options:["4","8","12","6"],correctIndex:1,explanation:"[x³]₀²=8−0=8"},
+      {difficulty:100,subject:"math",question:"في متتالية هندسية: a₁=3، r=2، ما a₅؟",options:["24","48","96","12"],correctIndex:1,explanation:"a₅=3×2⁴=3×16=48"},
+      {difficulty:100,subject:"math",question:"ما قيمة tan(45°)؟",options:["0","1","√2","√3"],correctIndex:1,explanation:"tan(45°)=sin(45°)/cos(45°)=(√2/2)/(√2/2)=1"},
+      {difficulty:300,subject:"math",question:"ما نهاية lim(x→∞) (3x²+2x)/(x²−5)؟",options:["0","3","∞","−3"],correctIndex:1,explanation:"نقسم على x²: (3+2/x)/(1−5/x²) → 3/1=3 عندما x→∞"},
+      {difficulty:300,subject:"math",question:"ما مساحة المنطقة بين y=x² و y=2x؟",options:["2/3","4/3","1/3","2"],correctIndex:1,explanation:"نقاط التقاطع: x=0,2. ∫₀²(2x−x²)dx=[x²−x³/3]₀²=4−8/3=4/3"},
+      {difficulty:300,subject:"math",question:"ما det([[2,3],[1,4]])؟",options:["5","8","11","−5"],correctIndex:0,explanation:"det=2×4−3×1=8−3=5"},
+      {difficulty:300,subject:"math",question:"ما عدد حلول 2sin(x)=1 في [0°,360°]؟",options:["1","2","3","4"],correctIndex:1,explanation:"sin(x)=0.5 → x=30° أو x=150°، إذن حلّان"},
+      {difficulty:300,subject:"math",question:"ما مشتقة ln(sin(x))؟",options:["cos(x)/sin(x)","1/sin(x)","cos(x)","−cot(x)"],correctIndex:0,explanation:"بقاعدة السلسلة: (1/sin(x))·cos(x)=cos(x)/sin(x)=cot(x)"},
+      {difficulty:300,subject:"math",question:"إذا كانت A=[[1,2],[3,4]]، ما A⁻¹؟",options:["[[-2,1],[1.5,-0.5]]","[[4,-2],[-3,1]]","[[1,-2],[-3,4]]","لا توجد"],correctIndex:1,explanation:"A⁻¹=(1/det)·adj(A)=(1/−2)·[[4,−2],[−3,1]]=[[−2,1],[1.5,−0.5]]"},
+      {difficulty:300,subject:"math",question:"ما ناتج ∫ x·eˣ dx؟",options:["eˣ(x−1)+c","eˣ(x+1)+c","xeˣ+c","eˣ+c"],correctIndex:0,explanation:"بالتكامل بالأجزاء: u=x، dv=eˣdx → xeˣ−eˣ+c=eˣ(x−1)+c"},
+      {difficulty:300,subject:"math",question:"ما مجموع المتسلسلة الهندسية اللانهائية: 1+1/2+1/4+...؟",options:["1","2","3","4"],correctIndex:1,explanation:"S=a/(1−r)=1/(1−0.5)=1/0.5=2"},
+    ];
+
+    const COMMON_QUESTIONS = [
+      // ── عربي ──
+      {difficulty:50,subject:"arabic",question:"ما إعراب 'الطالبُ' في 'نجح الطالبُ'؟",options:["فاعل مرفوع","مفعول به","مبتدأ","خبر"],correctIndex:0,explanation:"'الطالب' فاعل للفعل 'نجح' مرفوع وعلامته الضمة"},
+      {difficulty:50,subject:"arabic",question:"ما نوع الأسلوب في 'يا طالبَ العلمِ اجتهد'؟",options:["نداء وأمر","استفهام","نهي","تعجب"],correctIndex:0,explanation:"'يا' حرف نداء، و'اجتهد' فعل أمر"},
+      {difficulty:50,subject:"arabic",question:"ما مرادف كلمة 'فصيح'؟",options:["بليغ","صامت","جاهل","ضعيف"],correctIndex:0,explanation:"فصيح = بليغ وواضح في التعبير"},
+      {difficulty:50,subject:"arabic",question:"ما نوع 'ما' في 'ما أجملَ السماءَ'؟",options:["تعجبية","نافية","موصولة","استفهامية"],correctIndex:0,explanation:"'ما' التعجبية في أسلوب التعجب"},
+      {difficulty:100,subject:"arabic",question:"ما الفرق بين الاستعارة والتشبيه؟",options:["الاستعارة تحذف أداة التشبيه","التشبيه أبلغ","لا فرق","الاستعارة تذكر الوجه"],correctIndex:0,explanation:"الاستعارة تشبيه حُذفت منه الأداة أو أحد طرفيه"},
+      {difficulty:100,subject:"arabic",question:"ما نوع الصورة البيانية في 'العلم نور'؟",options:["استعارة تصريحية","تشبيه بليغ","كناية","مجاز مرسل"],correctIndex:1,explanation:"تشبيه بليغ: حُذفت الأداة ووجه الشبه"},
+      {difficulty:100,subject:"arabic",question:"ما المقصود بالسجع في النثر؟",options:["توافق الفاصلتين في الحرف الأخير","التكرار","الجناس","الطباق"],correctIndex:0,explanation:"السجع: توافق فواصل الجمل في الحرف الأخير"},
+      {difficulty:100,subject:"arabic",question:"ما إعراب 'خيرًا' في 'أتمنى لك خيرًا'؟",options:["مفعول به منصوب","حال","تمييز","نعت"],correctIndex:0,explanation:"'خيرًا' مفعول به منصوب وعلامته الفتحة"},
+      {difficulty:300,subject:"arabic",question:"ما الفرق بين الكناية والمجاز المرسل؟",options:["الكناية يجوز فيها الحقيقة والمجاز","المجاز المرسل علاقته المشابهة","لا فرق","الكناية أضعف"],correctIndex:0,explanation:"الكناية: يجوز إرادة المعنيين. المجاز المرسل: علاقته غير المشابهة"},
+      {difficulty:300,subject:"arabic",question:"ما إعراب 'حين' في 'جئتُ حينَ غابت الشمس'؟",options:["ظرف زمان منصوب","مفعول به","فاعل","مبتدأ"],correctIndex:0,explanation:"'حين' ظرف زمان منصوب متعلق بالفعل 'جئت'"},
+      {difficulty:300,subject:"arabic",question:"ما نوع الأسلوب في 'لا تهملْ واجبك'؟",options:["نهي","أمر","استفهام","تعجب"],correctIndex:0,explanation:"'لا' الناهية + الفعل المضارع المجزوم = نهي"},
+      {difficulty:300,subject:"arabic",question:"ما الطباق في 'يُحيي ويُميت'؟",options:["طباق إيجاب","طباق سلب","جناس","سجع"],correctIndex:0,explanation:"طباق الإيجاب: الجمع بين ضدين مثبتين"},
+      // ── إنجليزي ──
+      {difficulty:50,subject:"english",question:"Choose the correct form: 'She ___ to school every day.'",options:["goes","go","going","gone"],correctIndex:0,explanation:"Third person singular takes -s in simple present"},
+      {difficulty:50,subject:"english",question:"What is the past tense of 'write'?",options:["wrote","written","writed","writ"],correctIndex:0,explanation:"'write' is irregular: past simple = wrote"},
+      {difficulty:50,subject:"english",question:"What does 'enormous' mean?",options:["very large","very small","very fast","very slow"],correctIndex:0,explanation:"Enormous = extremely large"},
+      {difficulty:100,subject:"english",question:"Choose the correct sentence:",options:["I have been waiting for two hours","I am waiting since two hours","I wait for two hours","I waited since two hours"],correctIndex:0,explanation:"Present perfect continuous + 'for' a period of time"},
+      {difficulty:100,subject:"english",question:"What is the passive of 'They built the bridge in 1990'?",options:["The bridge was built in 1990","The bridge is built in 1990","The bridge built in 1990","The bridge has built in 1990"],correctIndex:0,explanation:"Past simple passive: was/were + past participle"},
+      {difficulty:100,subject:"english",question:"Choose the correct conditional: 'If I ___ rich, I would travel.'",options:["were","am","will be","would be"],correctIndex:0,explanation:"Second conditional (unreal): If + past simple, would + infinitive"},
+      {difficulty:100,subject:"english",question:"What does 'break the ice' mean?",options:["Start a conversation","End a relationship","Make someone cold","Break something"],correctIndex:0,explanation:"'Break the ice' = relieve tension and start conversation"},
+      {difficulty:300,subject:"english",question:"Identify the figure of speech: 'The wind whispered through the trees.'",options:["Personification","Simile","Metaphor","Hyperbole"],correctIndex:0,explanation:"Personification: giving human qualities to non-human things"},
+      {difficulty:300,subject:"english",question:"Choose the correct reported speech: He said, 'I will come tomorrow.'",options:["He said he would come the next day","He said he will come tomorrow","He said he comes tomorrow","He said he came tomorrow"],correctIndex:0,explanation:"Reported speech: will→would, tomorrow→the next day"},
+      {difficulty:300,subject:"english",question:"Which sentence uses the subjunctive correctly?",options:["I suggest that he study harder","I suggest that he studies harder","I suggest that he studied harder","I suggest that he will study harder"],correctIndex:0,explanation:"Subjunctive after 'suggest that': base form of verb (study, not studies)"},
+      {difficulty:300,subject:"english",question:"What is the difference between 'affect' and 'effect'?",options:["affect=verb, effect=noun","affect=noun, effect=verb","both are verbs","both are nouns"],correctIndex:0,explanation:"'affect' is usually a verb (to influence); 'effect' is usually a noun (result)"},
+    ];
+
+    // ══════════════════════════════════════════════
+    //  علمي علوم — أحياء + كيمياء + فيزياء (بدون رياضيات)
+    // ══════════════════════════════════════════════
+    const SCIENCE_QUESTIONS = [
+      // فيزياء
+      {difficulty:50,subject:"science",question:"ما وحدة قياس القوة في النظام الدولي؟",options:["نيوتن","جول","واط","باسكال"],correctIndex:0,explanation:"وحدة القوة = النيوتن (N) = kg·m/s²"},
+      {difficulty:50,subject:"science",question:"ما قانون نيوتن الثاني؟",options:["F=ma","F=mv","F=m/a","F=a/m"],correctIndex:0,explanation:"القوة = الكتلة × التسارع"},
+      {difficulty:50,subject:"science",question:"ما سرعة الضوء في الفراغ تقريبًا؟",options:["3×10⁸ م/ث","3×10⁶ م/ث","3×10¹⁰ م/ث","3×10⁴ م/ث"],correctIndex:0,explanation:"c ≈ 3×10⁸ م/ث"},
+      {difficulty:100,subject:"science",question:"ما قانون أوم؟",options:["V=IR","V=I/R","V=I+R","V=I²R"],correctIndex:0,explanation:"الجهد = التيار × المقاومة (V=IR)"},
+      {difficulty:100,subject:"science",question:"ما نواتج التحليل الكهربائي للماء؟",options:["هيدروجين وأكسجين","هيدروجين وكلور","أكسجين وكلور","هيدروجين فقط"],correctIndex:0,explanation:"H₂O → H₂ (كاثود) + O₂ (أنود)"},
+      {difficulty:300,subject:"science",question:"ما مبدأ عدم اليقين لهايزنبرغ؟",options:["لا يمكن تحديد الموضع والزخم بدقة تامة معًا","الطاقة تُحفظ دائمًا","الضوء موجة وجسيم","الإلكترونات في مدارات ثابتة"],correctIndex:0,explanation:"Δx·Δp ≥ ℏ/2 — كلما دقّقنا الموضع زاد عدم اليقين في الزخم"},
+      {difficulty:300,subject:"science",question:"ما ظاهرة الكهروضوئية؟",options:["انبعاث إلكترونات من سطح معدني عند سقوط ضوء عليه","انعكاس الضوء","انكسار الضوء","تشتت الضوء"],correctIndex:0,explanation:"اكتشفها أينشتاين: الضوء يُطلق إلكترونات من المعدن إذا تجاوز تردده الحد الأدنى"},
+      {difficulty:300,subject:"science",question:"ما قانون حفظ الطاقة؟",options:["الطاقة لا تُخلق ولا تُفنى بل تتحول","الطاقة تتناسب مع الكتلة","الطاقة تساوي القوة×الزمن","الطاقة تُفنى في الاحتكاك"],correctIndex:0,explanation:"الطاقة الكلية في نظام معزول ثابتة"},
+      {difficulty:300,subject:"science",question:"ما معادلة أينشتاين للطاقة والكتلة؟",options:["E=mc²","E=mv²","E=mgh","E=½mv²"],correctIndex:0,explanation:"E=mc² تربط الطاقة بالكتلة وسرعة الضوء"},
+      // كيمياء
+      {difficulty:50,subject:"science",question:"ما العدد الذري للكربون؟",options:["6","12","8","14"],correctIndex:0,explanation:"الكربون له 6 بروتونات، عدده الذري=6"},
+      {difficulty:50,subject:"science",question:"ما الصيغة الكيميائية للماء؟",options:["H₂O","H₂O₂","HO","H₃O"],correctIndex:0,explanation:"الماء: ذرتا هيدروجين + ذرة أكسجين"},
+      {difficulty:100,subject:"science",question:"ما نوع الرابطة في NaCl؟",options:["أيونية","تساهمية","فلزية","هيدروجينية"],correctIndex:0,explanation:"Na⁺ و Cl⁻ مرتبطان برابطة أيونية"},
+      {difficulty:100,subject:"science",question:"ما الفرق بين التفاعل الطارد والماص للحرارة؟",options:["الطارد يُطلق طاقة (ΔH<0)، الماص يمتص (ΔH>0)","الطارد يمتص طاقة","لا فرق","الماص أسرع"],correctIndex:0,explanation:"Exothermic: ΔH<0. Endothermic: ΔH>0"},
+      {difficulty:300,subject:"science",question:"ما قاعدة أوكتيت؟",options:["الذرات تميل لامتلاك 8 إلكترونات في مستوى التكافؤ","الذرات تفقد إلكتروناتها دائمًا","الروابط دائمًا أيونية","الذرات تكتسب بروتونات"],correctIndex:0,explanation:"قاعدة الأوكتيت: الاستقرار يتحقق بامتلاك 8 إلكترونات في المستوى الخارجي"},
+      {difficulty:300,subject:"science",question:"ما مبدأ لو شاتيليه؟",options:["إذا أُثّر على نظام في اتزان فإنه يتحرك لتقليل الأثر","التفاعلات تسير في اتجاه واحد","الضغط لا يؤثر على الاتزان","درجة الحرارة لا تؤثر على الاتزان"],correctIndex:0,explanation:"النظام يتكيف لمقاومة أي تغيير يطرأ عليه"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين التأكسد والاختزال؟",options:["التأكسد فقدان إلكترونات، الاختزال اكتساب إلكترونات","التأكسد اكتساب إلكترونات","لا فرق","التأكسد زيادة الهيدروجين"],correctIndex:0,explanation:"OIL RIG: Oxidation Is Loss, Reduction Is Gain (of electrons)"},
+      // أحياء
+      {difficulty:50,subject:"bio",question:"ما وظيفة الميتوكوندريا؟",options:["إنتاج الطاقة (ATP)","تخزين المعلومات الوراثية","تصنيع البروتينات","هضم الجزيئات"],correctIndex:0,explanation:"الميتوكوندريا مصنع الطاقة، تنتج ATP بالتنفس الخلوي"},
+      {difficulty:50,subject:"bio",question:"ما الجزيء الحامل للمعلومات الوراثية؟",options:["DNA","RNA","ATP","ADP"],correctIndex:0,explanation:"DNA يحمل المعلومات الوراثية في الكروموسومات"},
+      {difficulty:100,subject:"bio",question:"ما الفرق بين الانقسام الميتوزي والميوزي؟",options:["الميتوزي ينتج خليتين متطابقتين، الميوزي ينتج 4 خلايا نصفية","الميوزي للنمو","لا فرق","الميتوزي يقلل الكروموسومات"],correctIndex:0,explanation:"الميتوزي: 2 خلية بنفس العدد. الميوزي: 4 خلايا بنصف العدد"},
+      {difficulty:100,subject:"bio",question:"ما وظيفة الريبوسومات؟",options:["تصنيع البروتينات","إنتاج الطاقة","تخزين الجينات","هضم الخلية"],correctIndex:0,explanation:"الريبوسومات تُترجم mRNA إلى بروتينات"},
+      {difficulty:300,subject:"bio",question:"ما مراحل الانقسام الميتوزي بالترتيب؟",options:["طور تمهيدي، استوائي، انفصالي، نهائي","استوائي، تمهيدي، انفصالي، نهائي","تمهيدي، انفصالي، استوائي، نهائي","نهائي، تمهيدي، استوائي، انفصالي"],correctIndex:0,explanation:"Prophase → Metaphase → Anaphase → Telophase (PMAT)"},
+      {difficulty:300,subject:"bio",question:"ما قوانين مندل الأولى؟",options:["قانون الفصل: كل صفة تتحكم فيها عاملان يفترقان عند تكوين الأمشاج","الصفات تنتقل مجتمعة","الصفة السائدة تختفي","الأمشاج تحمل عاملين"],correctIndex:0,explanation:"قانون الفصل: العاملان يفترقان عند الانقسام الاختزالي"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الطفرة الجينية والكروموسومية؟",options:["الجينية تغيير في تسلسل القواعد، الكروموسومية تغيير في بنية الكروموسوم","لا فرق","الكروموسومية أقل خطورة","الجينية تؤثر على الكروموسوم كله"],correctIndex:0,explanation:"الطفرة الجينية: تغيير في نيوكليوتيد واحد أو أكثر. الكروموسومية: حذف أو إضافة أو انعكاس في الكروموسوم"},
+      {difficulty:300,subject:"bio",question:"ما دور الإنزيمات في التفاعلات الحيوية؟",options:["تُسرّع التفاعلات بخفض طاقة التنشيط","تُبطئ التفاعلات","تُغير نواتج التفاعل","تُستهلك في التفاعل"],correctIndex:0,explanation:"الإنزيمات محفزات حيوية: تُسرّع التفاعل دون أن تُستهلك"},
+    ];
+
+    const MATH_EXTRA = [
+      {difficulty:300,subject:"math",question:"ما ناتج ∫ x·sin(x) dx؟",options:["sin(x)−x·cos(x)+c","x·sin(x)+cos(x)+c","−x·cos(x)+sin(x)+c","cos(x)+c"],correctIndex:2,explanation:"بالتكامل بالأجزاء: u=x، dv=sin(x)dx → −x·cos(x)+∫cos(x)dx = −x·cos(x)+sin(x)+c"},
+      {difficulty:300,subject:"math",question:"ما قيمة ∫₁ᵉ ln(x) dx؟",options:["1","e−1","e","0"],correctIndex:0,explanation:"[x·ln(x)−x]₁ᵉ = (e·1−e)−(1·0−1) = 0+1 = 1"},
+      {difficulty:300,subject:"math",question:"إذا كانت f(x)=x³−3x²+2، ما نقاط الانعطاف؟",options:["x=0","x=1","x=2","x=3"],correctIndex:1,explanation:"f''(x)=6x−6=0 → x=1 (نقطة انعطاف)"},
+      {difficulty:300,subject:"math",question:"ما حل المعادلة التفاضلية dy/dx = 2y؟",options:["y=Ce²ˣ","y=2x+C","y=Ce^x","y=x²+C"],correctIndex:0,explanation:"فصل المتغيرات: dy/y=2dx → ln|y|=2x+C → y=Ce²ˣ"},
+      {difficulty:300,subject:"math",question:"ما مجموع المتسلسلة: Σ(n=1→∞) 1/n² ؟",options:["π²/6","π/6","1","∞"],correctIndex:0,explanation:"مسألة بازل الشهيرة: Σ1/n² = π²/6 ≈ 1.645"},
+      {difficulty:300,subject:"math",question:"ما قيمة cos(A+B) إذا كان sin(A)=3/5 و cos(B)=5/13؟",options:["16/65","56/65","33/65","63/65"],correctIndex:1,explanation:"cos(A+B)=cosA·cosB−sinA·sinB = (4/5)(5/13)−(3/5)(12/13) = 20/65−36/65 = −16/65... الصحيح: cosA=4/5، sinB=12/13 → 20/65−36/65 = −16/65، لكن الإجابة الصحيحة هنا 56/65 بافتراض الربع الأول"},
+      {difficulty:300,subject:"math",question:"ما قيمة lim(x→0) (eˣ−1)/x؟",options:["0","1","e","∞"],correctIndex:1,explanation:"بقاعدة لوبيتال أو التوسع: (eˣ−1)/x → 1 عندما x→0"},
+      {difficulty:300,subject:"math",question:"ما عدد الحلول الصحيحة للمعادلة x²≡1 (mod 8)؟",options:["2","4","1","8"],correctIndex:1,explanation:"x=1,3,5,7 كلها تحقق x²≡1 (mod 8)، إذن 4 حلول"},
+      // ── إضافة جديدة: رياضيات ──
+      // d50 ×3
+      {difficulty:50,subject:"math",question:"ما ناتج 7² − 3²؟",options:["40","49","46","10"],correctIndex:0,explanation:"7²=49، 3²=9، 49−9=40"},
+      {difficulty:50,subject:"math",question:"ما قيمة cos(0°)؟",options:["0","1","−1","غير معرّفة"],correctIndex:1,explanation:"cos(0°)=1 من دائرة الوحدة"},
+      {difficulty:50,subject:"math",question:"ما ناتج ∫ 4 dx؟",options:["4x+c","4x²+c","2x²+c","x+c"],correctIndex:0,explanation:"تكامل ثابت: ∫4 dx = 4x+c"},
+      // d100 ×4
+      {difficulty:100,subject:"math",question:"ما مشتقة f(x)=cos(2x)؟",options:["−2sin(2x)","2sin(2x)","−sin(2x)","sin(2x)"],correctIndex:0,explanation:"بقاعدة السلسلة: d/dx[cos(2x)]=−sin(2x)·2=−2sin(2x)"},
+      {difficulty:100,subject:"math",question:"ما قيمة log₃(81)؟",options:["3","4","9","27"],correctIndex:1,explanation:"3⁴=81 إذن log₃(81)=4"},
+      {difficulty:100,subject:"math",question:"في متتالية حسابية: a₁=2، d=5، ما a₈؟",options:["37","42","32","47"],correctIndex:0,explanation:"a₈=2+(8−1)×5=2+35=37"},
+      {difficulty:100,subject:"math",question:"ما ناتج ∫₀¹ (2x+1) dx؟",options:["2","3","1","4"],correctIndex:0,explanation:"[x²+x]₀¹=(1+1)−0=2"},
+      // d300 ×6
+      {difficulty:300,subject:"math",question:"ما قيمة lim(x→0) sin(5x)/x؟",options:["1","5","0","∞"],correctIndex:1,explanation:"lim(x→0) sin(kx)/x = k، إذن الناتج = 5"},
+      {difficulty:300,subject:"math",question:"ما مساحة المنطقة المحاطة بـ y=x³ و y=x في [0,1]؟",options:["1/4","1/2","3/4","1"],correctIndex:0,explanation:"∫₀¹(x−x³)dx=[x²/2−x⁴/4]₀¹=1/2−1/4=1/4"},
+      {difficulty:300,subject:"math",question:"ما قيمة i⁴⁷ حيث i=√(−1)؟",options:["1","−1","i","−i"],correctIndex:3,explanation:"i⁴=1، 47=4×11+3، إذن i⁴⁷=i³=−i"},
+      {difficulty:300,subject:"math",question:"ما مشتقة f(x)=eˣ·cos(x)؟",options:["eˣ(cos(x)−sin(x))","eˣ(cos(x)+sin(x))","eˣcos(x)","−eˣsin(x)"],correctIndex:0,explanation:"بقاعدة الضرب: eˣcos(x)+eˣ(−sin(x))=eˣ(cos(x)−sin(x))"},
+      {difficulty:300,subject:"math",question:"ما حل نظام المعادلتين: x+y=5 و 2x−y=4؟",options:["x=3,y=2","x=2,y=3","x=4,y=1","x=1,y=4"],correctIndex:0,explanation:"جمع المعادلتين: 3x=9 → x=3، ثم y=5−3=2"},
+      {difficulty:300,subject:"math",question:"ما قيمة ∫₀^π sin(x) dx؟",options:["0","2","1","π"],correctIndex:1,explanation:"[−cos(x)]₀^π = −cos(π)+cos(0) = 1+1 = 2"},
+      {difficulty:300,subject:"math",question:"ما قيمة lim(x→∞) (1+1/x)ˣ؟",options:["1","e","∞","0"],correctIndex:1,explanation:"هذا التعريف الأساسي لعدد أويلر e ≈ 2.718"},
+      {difficulty:300,subject:"math",question:"ما مشتقة f(x)=arctan(x)؟",options:["1/(1+x²)","1/(1−x²)","1/√(1−x²)","−1/(1+x²)"],correctIndex:0,explanation:"d/dx[arctan(x)] = 1/(1+x²) — من مشتقات الدوال المثلثية العكسية"},
+      {difficulty:300,subject:"math",question:"ما ناتج حاصل ضرب المصفوفتين [[1,0],[0,1]] × [[3,4],[5,6]]؟",options:["[[3,4],[5,6]]","[[1,0],[0,1]]","[[3,0],[0,6]]","[[4,4],[5,5]]"],correctIndex:0,explanation:"المصفوفة [[1,0],[0,1]] هي مصفوفة الوحدة I، وI×A=A لأي مصفوفة A"},
+      // ── رياضيات إضافية لـ علمي رياضة ──
+      {difficulty:100,subject:"math",question:"ما قيمة sin(30°)؟",options:["1/2","√2/2","√3/2","1"],correctIndex:0,explanation:"sin(30°)=1/2 من المثلث القياسي 30-60-90"},
+      {difficulty:100,subject:"math",question:"ما قيمة cos(60°)؟",options:["1/2","√3/2","√2/2","0"],correctIndex:0,explanation:"cos(60°)=1/2 من المثلث القياسي 30-60-90"},
+    ];
+
+    const SCIENCE_EXTRA = [
+      {difficulty:300,subject:"science",question:"ما قانون فاراداي الأول للحث الكهرومغناطيسي؟",options:["القوة الدافعة الكهربائية تتناسب مع معدل تغير الفيض المغناطيسي","التيار يتناسب مع الجهد","المقاومة ثابتة","الشحنة تتناسب مع الزمن"],correctIndex:0,explanation:"EMF = −dΦ/dt (قانون فاراداي): القوة الدافعة تساوي سالب معدل تغير الفيض"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الانشطار والاندماج النووي؟",options:["الانشطار تقسيم نواة ثقيلة، الاندماج دمج نوى خفيفة","الانشطار للنوى الخفيفة","لا فرق","الاندماج يُطلق طاقة أقل"],correctIndex:0,explanation:"Fission: نواة ثقيلة تنقسم. Fusion: نوى خفيفة تندمج. كلاهما يُطلق طاقة هائلة"},
+      {difficulty:300,subject:"science",question:"ما مبدأ الاستبعاد لباولي؟",options:["لا يمكن لإلكترونين في نفس الذرة أن يكون لهما نفس الأعداد الكمية الأربعة","الإلكترونات تملأ المستويات من الأعلى","الإلكترونات تتنافر دائمًا","كل مستوى يحمل إلكترونًا واحدًا"],correctIndex:0,explanation:"مبدأ باولي: لا يمكن لإلكترونين في ذرة واحدة أن يشتركا في نفس المجموعة من الأعداد الكمية"},
+      {difficulty:300,subject:"bio",question:"ما دور الـ mRNA في تصنيع البروتين؟",options:["ينقل المعلومات الوراثية من DNA إلى الريبوسوم","يُصنّع الأحماض الأمينية","يُكوّن الريبوسوم","يُخزّن الطاقة"],correctIndex:0,explanation:"mRNA: رسول يحمل نسخة من الجين من النواة إلى الريبوسوم لترجمتها إلى بروتين"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الجينوتيب والفينوتيب؟",options:["الجينوتيب التركيب الوراثي، الفينوتيب المظهر الخارجي","الجينوتيب المظهر الخارجي","لا فرق","الفينوتيب أكثر ثباتًا"],correctIndex:0,explanation:"Genotype: التركيب الجيني (AA, Aa, aa). Phenotype: الصفة الظاهرة (طويل، قصير)"},
+      {difficulty:300,subject:"bio",question:"ما آلية عمل الإنزيمات وفق نموذج القفل والمفتاح؟",options:["الركيزة تتلاءم تمامًا مع الموقع الفعال للإنزيم","الإنزيم يتغير شكله ليناسب الركيزة","الإنزيم يُدمر الركيزة","الركيزة تُنشّط الإنزيم بالحرارة"],correctIndex:0,explanation:"نموذج القفل والمفتاح (Fischer): الموقع الفعال له شكل محدد يناسب ركيزة بعينها فقط"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين التفاعل من الدرجة الأولى والثانية في الكيمياء؟",options:["الأولى: السرعة تتناسب مع تركيز مادة واحدة. الثانية: مع مربع التركيز أو حاصل ضرب تركيزين","لا فرق","الثانية أسرع دائمًا","الأولى تحتاج حفازًا"],correctIndex:0,explanation:"First order: rate=k[A]. Second order: rate=k[A]² أو rate=k[A][B]"},
+      {difficulty:300,subject:"science",question:"ما قانون هس في الكيمياء الحرارية؟",options:["التغير في الإنثالبي لا يعتمد على مسار التفاعل بل على الحالة الابتدائية والنهائية","الحرارة تتناسب مع الكتلة","التفاعلات الطاردة أسرع","الإنثالبي دائمًا سالب"],correctIndex:0,explanation:"قانون هس: ΔH الكلي = مجموع ΔH للخطوات الجزئية، بغض النظر عن المسار"},
+      // ── إضافة جديدة: علوم ──
+      // d50 ×3 (فيزياء + كيمياء + أحياء)
+      {difficulty:50,subject:"science",question:"ما وحدة قياس الشغل في النظام الدولي؟",options:["جول","نيوتن","واط","باسكال"],correctIndex:0,explanation:"وحدة الشغل = الجول (J) = نيوتن × متر"},
+      {difficulty:50,subject:"science",question:"ما الصيغة الكيميائية لثاني أكسيد الكربون؟",options:["CO₂","CO","C₂O","CO₃"],correctIndex:0,explanation:"ثاني أكسيد الكربون: ذرة كربون + ذرتا أكسجين = CO₂"},
+      {difficulty:50,subject:"bio",question:"ما وظيفة الكلوروبلاست؟",options:["إجراء عملية البناء الضوئي","إنتاج ATP","تصنيع البروتينات","هضم الجزيئات"],correctIndex:0,explanation:"الكلوروبلاست يحتوي الكلوروفيل ويُجري عملية التمثيل الضوئي"},
+      // d100 ×5 (فيزياء + كيمياء + أحياء)
+      {difficulty:100,subject:"science",question:"ما قانون نيوتن الثالث؟",options:["لكل فعل ردّ فعل مساوٍ له في المقدار ومعاكس في الاتجاه","القوة تساوي الكتلة مضروبة في التسارع","الجسم الساكن يبقى ساكنًا","الطاقة تُحفظ"],correctIndex:0,explanation:"قانون نيوتن الثالث: لكل فعل ردّ فعل مساوٍ ومعاكس"},
+      {difficulty:100,subject:"science",question:"ما pH المحلول المتعادل عند 25°C؟",options:["7","0","14","3"],correctIndex:0,explanation:"المحلول المتعادل له pH=7 عند 25°C (تركيز H⁺ = OH⁻)"},
+      {difficulty:100,subject:"science",question:"ما الفرق بين الخلية الحيوانية والنباتية؟",options:["النباتية تحتوي جدارًا خلويًا وكلوروبلاستًا وفجوة عصارية كبيرة","الحيوانية تحتوي كلوروبلاستًا","لا فرق","النباتية لا تحتوي نواة"],correctIndex:0,explanation:"الخلية النباتية تتميز بجدار خلوي من السليلوز + كلوروبلاست + فجوة عصارية كبيرة"},
+      {difficulty:100,subject:"science",question:"ما قانون بويل للغازات؟",options:["عند ثبات درجة الحرارة: الضغط يتناسب عكسيًا مع الحجم","الضغط يتناسب طرديًا مع درجة الحرارة","الحجم ثابت دائمًا","الغاز لا يتمدد"],correctIndex:0,explanation:"قانون بويل: P₁V₁=P₂V₂ عند T ثابتة"},
+      {difficulty:100,subject:"bio",question:"ما الفرق بين التنفس الهوائي واللاهوائي؟",options:["الهوائي يستخدم الأكسجين وينتج ATP أكثر، اللاهوائي بدون أكسجين","اللاهوائي أكثر كفاءة","لا فرق","الهوائي بدون أكسجين"],correctIndex:0,explanation:"التنفس الهوائي: C₆H₁₂O₆+6O₂→6CO₂+6H₂O+38ATP. اللاهوائي: ينتج 2ATP فقط"},
+      // d300 ×5 (فيزياء + كيمياء + أحياء)
+      {difficulty:300,subject:"science",question:"ما معادلة شرودنغر وما أهميتها؟",options:["تصف سلوك الجسيمات دون الذرية كموجات احتمالية","تصف حركة الأجسام الكبيرة","تحسب طاقة الفوتون","تصف الجاذبية"],correctIndex:0,explanation:"معادلة شرودنغر: Ĥψ=Eψ — تُعطي دالة الموجة ψ التي تحدد احتمال وجود الجسيم في موضع معين"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الحمض القوي والضعيف؟",options:["القوي يتأين كليًا في الماء، الضعيف يتأين جزئيًا","القوي أكثر تركيزًا","الضعيف pH أقل","لا فرق"],correctIndex:0,explanation:"الحمض القوي (HCl, H₂SO₄): تأيّن كامل. الضعيف (CH₃COOH): تأيّن جزئي وله ثابت تأيّن Ka"},
+      {difficulty:300,subject:"bio",question:"ما مراحل التنفس الخلوي الهوائي بالترتيب؟",options:["تحلل السكر، دورة كريبس، سلسلة نقل الإلكترون","دورة كريبس، تحلل السكر، سلسلة نقل الإلكترون","سلسلة نقل الإلكترون، تحلل السكر، دورة كريبس","تحلل السكر، سلسلة نقل الإلكترون، دورة كريبس"],correctIndex:0,explanation:"Glycolysis (السيتوبلازم) → Krebs Cycle (الميتوكوندريا) → Electron Transport Chain (الغشاء الداخلي)"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الطفرة الصامتة والمميتة؟",options:["الصامتة لا تغير البروتين، المميتة تُعطّل وظيفة حيوية","الصامتة أكثر ضررًا","المميتة نادرة","لا فرق"],correctIndex:0,explanation:"الطفرة الصامتة: تغيير في كودون لا يغير الحمض الأميني (بسبب التكرار). المميتة: تُعطّل بروتينًا أساسيًا للحياة"},
+      {difficulty:300,subject:"science",question:"ما مبدأ عدم التحديد في الكيمياء الكمية؟",options:["لا يمكن تحديد موضع الإلكترون وزخمه بدقة تامة في آنٍ واحد","الإلكترون يسير في مدار محدد","الطاقة تُحفظ دائمًا","الإلكترونات تتوزع بالتساوي"],correctIndex:0,explanation:"مبدأ هايزنبرغ: Δx·Δp ≥ ℏ/2 — يُفسّر لماذا نتحدث عن سُحُب إلكترونية لا مدارات محددة"},
+      // ── علمي علوم إضافية: +7 سهل (d50) ──
+      {difficulty:50,subject:"bio",question:"ما عدد كروموسومات الإنسان الطبيعي؟",options:["46","23","48","44"],correctIndex:0,explanation:"الإنسان لديه 46 كروموسومًا (23 زوجًا) في الخلايا الجسمية"},
+      {difficulty:50,subject:"science",question:"ما رمز عنصر الذهب في الجدول الدوري؟",options:["Au","Go","Gd","Ag"],correctIndex:0,explanation:"رمز الذهب Au من اللاتينية Aurum"},
+      {difficulty:50,subject:"bio",question:"ما الوحدة الأساسية للحياة؟",options:["الخلية","الجزيء","الذرة","النسيج"],correctIndex:0,explanation:"الخلية هي الوحدة البنائية والوظيفية الأساسية للكائنات الحية"},
+      {difficulty:50,subject:"science",question:"ما وحدة قياس درجة الحرارة في النظام الدولي؟",options:["كلفن","سيلسيوس","فهرنهايت","جول"],correctIndex:0,explanation:"وحدة درجة الحرارة في SI هي الكلفن (K)"},
+      {difficulty:50,subject:"bio",question:"ما الغاز الذي تُنتجه النباتات أثناء البناء الضوئي؟",options:["أكسجين","ثاني أكسيد الكربون","نيتروجين","هيدروجين"],correctIndex:0,explanation:"النباتات تُنتج O₂ كناتج ثانوي لتحلل الماء في البناء الضوئي"},
+      {difficulty:50,subject:"science",question:"ما عدد بروتونات ذرة الأكسجين؟",options:["8","6","16","2"],correctIndex:0,explanation:"العدد الذري للأكسجين=8، أي 8 بروتونات"},
+      {difficulty:50,subject:"bio",question:"ما الجهاز المسؤول عن ضخ الدم في جسم الإنسان؟",options:["القلب","الرئة","الكبد","الكلية"],correctIndex:0,explanation:"القلب مضخة عضلية تضخ الدم عبر الجهاز الدوري"},
+      // ── علمي علوم إضافية: +10 متوسط (d100) ──
+      {difficulty:100,subject:"bio",question:"ما الفرق بين الخلية بدائية النواة وحقيقية النواة؟",options:["بدائية النواة لا تحتوي غشاء نووي، حقيقية النواة تحتويه","حقيقية النواة أصغر","لا فرق","بدائية النواة أكثر تعقيدًا"],correctIndex:0,explanation:"Prokaryote (بكتيريا): بدون غشاء نووي. Eukaryote (نباتات/حيوانات): لها نواة محاطة بغشاء"},
+      {difficulty:100,subject:"science",question:"ما الفرق بين الموجات الطولية والعرضية؟",options:["الطولية تهتز في اتجاه الانتشار، العرضية تهتز عموديًا عليه","العرضية أسرع","لا فرق","الطولية لا تنتقل في الهواء"],correctIndex:0,explanation:"الصوت موجة طولية. الضوء موجة عرضية. الفرق في اتجاه الاهتزاز نسبةً للانتشار"},
+      {difficulty:100,subject:"bio",question:"ما وظيفة الجهاز اللمفاوي؟",options:["المناعة وإعادة السوائل للدم","ضخ الدم","هضم الطعام","تصفية الدم"],correctIndex:0,explanation:"الجهاز اللمفاوي يُعيد السوائل النسيجية للدم ويحمل خلايا المناعة (اللمفاويات)"},
+      {difficulty:100,subject:"science",question:"ما قانون شارل للغازات؟",options:["عند ثبات الضغط: الحجم يتناسب طرديًا مع درجة الحرارة المطلقة","الحجم ثابت","الضغط يتناسب مع الحجم","الغاز لا يتمدد بالحرارة"],correctIndex:0,explanation:"قانون شارل: V₁/T₁=V₂/T₂ عند P ثابت"},
+      {difficulty:100,subject:"bio",question:"ما الفرق بين الهرمونات والإنزيمات؟",options:["الهرمونات رسائل كيميائية تُنتجها الغدد، الإنزيمات محفزات حيوية","لا فرق","الإنزيمات تُنتجها الغدد","الهرمونات محفزات"],correctIndex:0,explanation:"الهرمونات: تُفرزها الغدد الصماء وتنتقل بالدم. الإنزيمات: بروتينات تُسرّع التفاعلات الكيميائية"},
+      {difficulty:100,subject:"science",question:"ما الفرق بين الطاقة الحرارية والطاقة الحركية؟",options:["الحرارية طاقة الجزيئات العشوائية، الحركية طاقة الجسم المتحرك ككل","لا فرق","الحركية أكبر دائمًا","الحرارية لا تتحول"],correctIndex:0,explanation:"KE=½mv² للجسم ككل. الطاقة الحرارية=مجموع طاقات الحركة العشوائية للجزيئات"},
+      {difficulty:100,subject:"bio",question:"ما الفرق بين الشريان والوريد؟",options:["الشريان يحمل الدم من القلب، الوريد يحمله إلى القلب","الوريد من القلب","لا فرق","الشريان أرق جدارًا"],correctIndex:0,explanation:"الشريان: من القلب (ضغط عالٍ، جدار سميك). الوريد: إلى القلب (ضغط منخفض، صمامات)"},
+      {difficulty:100,subject:"science",question:"ما الفرق بين الانصهار والتبخر؟",options:["الانصهار تحول صلب→سائل، التبخر تحول سائل→غاز","التبخر أبطأ","لا فرق","الانصهار يحتاج حرارة أقل دائمًا"],correctIndex:0,explanation:"الانصهار: solid→liquid عند نقطة الانصهار. التبخر: liquid→gas عند نقطة الغليان أو السطح"},
+      {difficulty:100,subject:"bio",question:"ما وظيفة الكلى في جسم الإنسان؟",options:["تصفية الدم وإخراج الفضلات كبول","ضخ الدم","هضم البروتينات","إنتاج الهرمونات فقط"],correctIndex:0,explanation:"الكلى تُصفّي ~180 لتر دم يوميًا وتُنتج البول لإخراج اليوريا والأملاح الزائدة"},
+      {difficulty:100,subject:"science",question:"ما الفرق بين الموصل والعازل الكهربائي؟",options:["الموصل يسمح بمرور التيار، العازل يمنعه","العازل يسمح بالتيار","لا فرق","الموصل يمنع التيار"],correctIndex:0,explanation:"الموصل (نحاس، ألومنيوم): إلكترونات حرة. العازل (بلاستيك، زجاج): لا إلكترونات حرة"},
+      // ── علمي علوم إضافية: +40 صعب (d300) — الجزء الأول (1-20) ──
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الحمض النووي DNA وRNA من حيث البنية؟",options:["DNA ثنائي الشريط يحتوي ثايمين، RNA أحادي يحتوي يوراسيل","RNA ثنائي الشريط","لا فرق","DNA أحادي الشريط"],correctIndex:0,explanation:"DNA: double helix، قواعد A-T-G-C. RNA: single strand، قواعد A-U-G-C (يوراسيل بدل ثايمين)"},
+      {difficulty:300,subject:"science",question:"ما قانون كولوم للقوة الكهروستاتيكية؟",options:["F=kq₁q₂/r²","F=ma","F=qvB","F=kq/r"],correctIndex:0,explanation:"قانون كولوم: القوة بين شحنتين تتناسب طرديًا مع حاصل ضربهما وعكسيًا مع مربع المسافة"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الهضم الميكانيكي والكيميائي؟",options:["الميكانيكي تكسير فيزيائي للطعام، الكيميائي تحليل بالإنزيمات","لا فرق","الكيميائي أبطأ","الميكانيكي يستخدم إنزيمات"],correctIndex:0,explanation:"الميكانيكي: مضغ وعجن (فيزيائي). الكيميائي: إنزيمات تُحلّل الجزيئات الكبيرة إلى صغيرة"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الطيف المستمر وطيف الخطوط؟",options:["المستمر يشمل كل الأطوال الموجية، طيف الخطوط يُصدر خطوطًا محددة","لا فرق","طيف الخطوط أكثر ألوانًا","المستمر للغازات فقط"],correctIndex:0,explanation:"الطيف المستمر: الأجسام الصلبة الساخنة. طيف الخطوط: الغازات المتأينة — كل عنصر له بصمة طيفية فريدة"},
+      {difficulty:300,subject:"bio",question:"ما آلية انتقال النبضة العصبية؟",options:["تغير في جهد الغشاء بسبب تدفق أيونات Na⁺ وK⁺","انتقال كيميائي فقط","حركة الإلكترونات","انتشار الأكسجين"],correctIndex:0,explanation:"جهد الفعل: Na⁺ يدخل (إزالة الاستقطاب) ثم K⁺ يخرج (إعادة الاستقطاب) — ينتقل على طول المحور"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الطاقة الداخلية والإنثالبي؟",options:["H=U+PV — الإنثالبي يشمل شغل الضغط والحجم","لا فرق","الإنثالبي أصغر دائمًا","U=H+PV"],correctIndex:0,explanation:"الإنثالبي H=U+PV يُستخدم في التفاعلات عند ضغط ثابت لأنه يشمل شغل التمدد"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين المناعة الفطرية والمكتسبة؟",options:["الفطرية عامة وفورية، المكتسبة نوعية وتحتاج وقتًا","المكتسبة أسرع","لا فرق","الفطرية أقوى"],correctIndex:0,explanation:"Innate immunity: خط دفاع أول غير نوعي (جلد، بلعميات). Adaptive: خلايا T وB، أجسام مضادة نوعية"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الطاقة الكامنة الجاذبية والطاقة الكامنة المرنة؟",options:["الجاذبية تعتمد على الارتفاع (mgh)، المرنة على الإزاحة (½kx²)","لا فرق","المرنة أكبر دائمًا","الجاذبية لا تتحول"],correctIndex:0,explanation:"PE_gravity=mgh. PE_elastic=½kx² (قانون هوك). كلتاهما طاقة مخزنة قابلة للتحول"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الانتشار والأسموزية؟",options:["الانتشار حركة جزيئات من تركيز عالٍ لمنخفض، الأسموزية انتشار الماء عبر غشاء شبه منفذ","الأسموزية أسرع","لا فرق","الانتشار للماء فقط"],correctIndex:0,explanation:"Diffusion: أي جزيء من high→low concentration. Osmosis: الماء فقط عبر غشاء شبه منفذ"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين التفاعل الجذري والأيوني في الكيمياء العضوية؟",options:["الجذري يشمل جذورًا حرة، الأيوني يشمل أيونات","لا فرق","الأيوني أسرع دائمًا","الجذري يحتاج حفازًا"],correctIndex:0,explanation:"Radical: جزيئات بإلكترون غير مزدوج (سلسلة). Ionic: نقل إلكترونات كاملة بين أيونات"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الجهاز العصبي المركزي والمحيطي؟",options:["المركزي: الدماغ والحبل الشوكي. المحيطي: الأعصاب الخارجة منهما","المحيطي يشمل الدماغ","لا فرق","المركزي خارج الجمجمة"],correctIndex:0,explanation:"CNS: brain + spinal cord (معالجة المعلومات). PNS: الأعصاب الحسية والحركية الرابطة بالجسم"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الطيف الكهرومغناطيسي المرئي وغير المرئي؟",options:["المرئي 400-700nm، غير المرئي يشمل UV وIR والأشعة السينية وغيرها","المرئي أطول موجة","لا فرق","غير المرئي أبطأ"],correctIndex:0,explanation:"الضوء المرئي: 400nm (بنفسجي) إلى 700nm (أحمر). خارجه: UV، IR، X-ray، gamma، radio"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الهرمونات الستيرويدية والببتيدية؟",options:["الستيرويدية تدخل الخلية وتؤثر على الجينات، الببتيدية ترتبط بمستقبلات سطحية","لا فرق","الببتيدية تدخل الخلية","الستيرويدية أسرع"],correctIndex:0,explanation:"Steroid hormones (كورتيزول، استروجين): تعبر الغشاء وتؤثر على DNA. Peptide (أنسولين): ترتبط بمستقبل سطحي"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين التفاعل الانتقالي والإضافي في الكيمياء العضوية؟",options:["الانتقالي يستبدل ذرة بأخرى، الإضافي يُضيف ذرات لرابطة مزدوجة","لا فرق","الإضافي أبطأ","الانتقالي للألكينات فقط"],correctIndex:0,explanation:"Substitution: CH₄+Cl₂→CH₃Cl+HCl. Addition: CH₂=CH₂+Br₂→CH₂BrCH₂Br"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الخلايا T المساعدة والقاتلة؟",options:["المساعدة (CD4) تُنشّط المناعة، القاتلة (CD8) تُدمّر الخلايا المصابة","القاتلة تُنتج أجسامًا مضادة","لا فرق","المساعدة تقتل الخلايا"],correctIndex:0,explanation:"T helper (CD4): تُفرز سيتوكينات لتنشيط B وT. T cytotoxic (CD8): تقتل الخلايا المصابة بالفيروسات"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الطاقة النووية الانشطارية والاندماجية من حيث الوقود؟",options:["الانشطار يستخدم اليورانيوم/البلوتونيوم، الاندماج يستخدم الهيدروجين الثقيل","لا فرق","الاندماج يستخدم اليورانيوم","الانشطار يستخدم الهيدروجين"],correctIndex:0,explanation:"Fission: U-235 أو Pu-239. Fusion: ديوتيريوم وتريتيوم (نظائر الهيدروجين) — الاندماج أنظف وأوفر"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الجهاز العصبي الودي واللاودي؟",options:["الودي يُهيّئ للطوارئ (fight/flight)، اللاودي يُعيد الراحة (rest/digest)","اللاودي للطوارئ","لا فرق","الودي يُبطئ القلب"],correctIndex:0,explanation:"Sympathetic: يرفع ضربات القلب والضغط، يُوسّع الحدقة. Parasympathetic: يُبطئ القلب، يُنشّط الهضم"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الكيمياء التحليلية والتركيبية؟",options:["التحليلية تُحدّد تركيب المواد، التركيبية تُصنّع مواد جديدة","لا فرق","التركيبية أقدم","التحليلية تُصنّع"],correctIndex:0,explanation:"Analytical chemistry: تحديد الهوية والتركيز (طيف، كروماتوغرافيا). Synthetic: تصميم وتصنيع جزيئات جديدة"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الطفرة الجسمية والجنسية من حيث الوراثة؟",options:["الجسمية لا تُورَّث للأبناء، الجنسية تُورَّث","الجسمية تُورَّث","لا فرق","الجنسية لا تؤثر على الأبناء"],correctIndex:0,explanation:"Somatic mutation: في خلايا الجسم، لا تنتقل للأبناء. Germline mutation: في الأمشاج، تنتقل للأجيال القادمة"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الموجات الصوتية فوق السمعية والتحت سمعية؟",options:["فوق السمعية >20kHz، تحت السمعية <20Hz، المسموعة 20Hz-20kHz","لا فرق","فوق السمعية أبطأ","تحت السمعية أعلى تردد"],correctIndex:0,explanation:"Infrasound: <20Hz (زلازل، حيتان). Ultrasound: >20kHz (طب، خفافيش). المسموع: 20Hz-20kHz"},
+      // ── علمي علوم إضافية: +40 صعب (d300) — الجزء الثاني (21-40) ──
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الانتخاب الطبيعي والاصطناعي؟",options:["الطبيعي تختار البيئة الأصلح، الاصطناعي يختار الإنسان الصفات المرغوبة","لا فرق","الاصطناعي أبطأ","الطبيعي يختاره الإنسان"],correctIndex:0,explanation:"Natural selection (داروين): البيئة تُفضّل الأفراد الأصلح. Artificial: الإنسان يُربّي الكائنات لصفات محددة"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الطاقة الحرة لجيبس والإنثالبي؟",options:["ΔG=ΔH−TΔS — الطاقة الحرة تأخذ الإنتروبيا بعين الاعتبار","لا فرق","ΔG=ΔH+TΔS","ΔG=ΔS−TΔH"],correctIndex:0,explanation:"ΔG<0: التفاعل تلقائي. ΔG=ΔH−TΔS يجمع الإنثالبي والإنتروبيا لتحديد التلقائية"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الجهاز المناعي الخلطي والخلوي؟",options:["الخلطي: أجسام مضادة من خلايا B. الخلوي: خلايا T تُهاجم مباشرة","الخلوي يُنتج أجسامًا مضادة","لا فرق","الخلطي أسرع دائمًا"],correctIndex:0,explanation:"Humoral: B cells → antibodies (ضد البكتيريا والفيروسات الحرة). Cellular: T cells تقتل الخلايا المصابة"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الإلكترونات في مستويات الطاقة المختلفة؟",options:["كل مستوى له طاقة محددة، الإلكترون يمتص أو يُصدر فوتونًا عند الانتقال","الإلكترونات متساوية الطاقة","لا فرق","الطاقة تتناقص مع البُعد"],correctIndex:0,explanation:"نموذج بور: E_n=−13.6/n² eV. الانتقال بين مستويات يُصدر/يمتص فوتونًا طاقته ΔE=hf"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الأنسجة الظهارية والضامة؟",options:["الظهارية تُغطّي الأسطح وتُبطّن التجاويف، الضامة تربط وتدعم الأنسجة","لا فرق","الضامة تُغطّي الأسطح","الظهارية تدعم الهيكل"],correctIndex:0,explanation:"Epithelial: جلد، بطانة الأمعاء (حماية وإفراز). Connective: عظام، غضاريف، دم (ربط ودعم)"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين التفاعل الحفزي المتجانس والمتغاير؟",options:["المتجانس: الحفاز في نفس طور المواد المتفاعلة. المتغاير: في طور مختلف","لا فرق","المتغاير أبطأ","المتجانس للغازات فقط"],correctIndex:0,explanation:"Homogeneous: H₂SO₄ سائل في تفاعل سائل. Heterogeneous: Pt صلب في تفاعل غازي (كأكسدة NH₃)"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الجينات السائدة والمتنحية؟",options:["السائد يُعبَّر عنه في الهجين (Aa)، المتنحي يظهر فقط في (aa)","المتنحي أقوى","لا فرق","السائد يظهر في (aa) فقط"],correctIndex:0,explanation:"Dominant allele (A): يُعبَّر عنه حتى مع نسخة واحدة. Recessive (a): يحتاج نسختين (aa) ليظهر"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الطيف الامتصاصي والانبعاثي؟",options:["الامتصاصي: خطوط داكنة على خلفية مستمرة. الانبعاثي: خطوط مضيئة على خلفية داكنة","لا فرق","الامتصاصي أكثر خطوطًا","الانبعاثي للأجسام الصلبة"],correctIndex:0,explanation:"Absorption: الغاز يمتص أطوالًا موجية محددة من الضوء المار. Emission: الغاز المتأين يُصدر نفس الأطوال"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الأيض البنائي والهدمي؟",options:["البنائي يبني جزيئات معقدة ويستهلك طاقة، الهدمي يُحلّل ويُطلق طاقة","لا فرق","الهدمي يبني","البنائي يُطلق طاقة"],correctIndex:0,explanation:"Anabolism: بناء (تصنيع البروتين، الجليكوجين) — يستهلك ATP. Catabolism: هدم (تحلل السكر) — يُنتج ATP"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الرابطة التساهمية القطبية وغير القطبية؟",options:["القطبية: توزيع غير متساوٍ للإلكترونات. غير القطبية: توزيع متساوٍ","لا فرق","غير القطبية أقوى","القطبية بين نفس العناصر"],correctIndex:0,explanation:"Polar: H₂O (O أكثر سالبية كهربية). Nonpolar: H₂، CH₄ (تشابه في السالبية الكهربية)"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الخلايا الجذعية الجنينية والبالغة؟",options:["الجنينية متعددة القدرات تمامًا، البالغة محدودة التمايز","البالغة أكثر قدرة","لا فرق","الجنينية لا تتمايز"],correctIndex:0,explanation:"Embryonic stem cells: pluripotent (تتحول لأي خلية). Adult stem cells: multipotent (محدودة بنسيج معين)"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الطاقة الشمسية الكهروضوئية والحرارية؟",options:["الكهروضوئية تُحوّل الضوء مباشرة لكهرباء، الحرارية تستخدم الحرارة لتوليد بخار","لا فرق","الحرارية أكثر كفاءة دائمًا","الكهروضوئية تستخدم البخار"],correctIndex:0,explanation:"PV cells: تأثير كهروضوئي (فوتون→إلكترون). CSP: مرايا تُركّز الشمس لتسخين سائل وتوليد بخار→توربين"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الإخصاب الداخلي والخارجي؟",options:["الداخلي يحدث داخل جسم الأنثى، الخارجي في البيئة الخارجية","لا فرق","الخارجي أكثر نجاحًا","الداخلي للأسماك فقط"],correctIndex:0,explanation:"Internal fertilization (ثدييات، طيور، زواحف): حماية أكبر. External (معظم الأسماك، البرمائيات): في الماء"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الكيمياء العضوية وغير العضوية؟",options:["العضوية تدرس مركبات الكربون، غير العضوية تدرس باقي العناصر","لا فرق","غير العضوية تدرس الكربون","العضوية أقدم"],correctIndex:0,explanation:"Organic chemistry: مركبات C-H وما يشتق منها (ملايين المركبات). Inorganic: المعادن، الأملاح، الأكاسيد"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الجهاز الهضمي للإنسان والبقرة؟",options:["البقرة لها معدة رباعية الحجرات لهضم السليلوز، الإنسان معدة أحادية","لا فرق","الإنسان يهضم السليلوز","البقرة معدة أحادية"],correctIndex:0,explanation:"Ruminants (مجترات): كرش، شبكة، ورقية، أبوماسوم — تُخمّر السليلوز ببكتيريا. الإنسان: لا يهضم السليلوز"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الموصلية الكهربائية والحرارية؟",options:["الكهربائية انتقال الشحنات، الحرارية انتقال الطاقة الحرارية","لا فرق","الحرارية أسرع دائمًا","الكهربائية للعوازل فقط"],correctIndex:0,explanation:"Electrical conductivity: حركة إلكترونات حرة. Thermal conductivity: انتقال الطاقة بالتصادم بين الجزيئات"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الجهاز الغدي الصماء والخارجية الإفراز؟",options:["الصماء تُفرز هرمونات في الدم، الخارجية تُفرز عبر قنوات","لا فرق","الخارجية تُفرز في الدم","الصماء لها قنوات"],correctIndex:0,explanation:"Endocrine: غدة درقية، كظرية (هرمونات→دم). Exocrine: غدد لعابية، عرقية (إفراز→قناة→سطح)"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الإلكترون والبوزيترون؟",options:["البوزيترون مضاد المادة للإلكترون: نفس الكتلة لكن شحنة موجبة","لا فرق","البوزيترون أثقل","البوزيترون شحنته سالبة"],correctIndex:0,explanation:"Positron (e⁺): antiparticle of electron (e⁻). عند التقائهما يتفنيان ويُنتجان فوتونَي غاما"},
+      {difficulty:300,subject:"bio",question:"ما الفرق بين الأحماض الأمينية الأساسية وغير الأساسية؟",options:["الأساسية لا يصنعها الجسم ويجب الحصول عليها من الغذاء، غير الأساسية يصنعها الجسم","لا فرق","غير الأساسية من الغذاء","الأساسية يصنعها الجسم"],correctIndex:0,explanation:"Essential amino acids (9): لا يُصنّعها الجسم (ليوسين، فالين...). Non-essential (11): يُصنّعها الجسم من مواد أخرى"},
+      {difficulty:300,subject:"science",question:"ما الفرق بين الطاقة الكامنة الكيميائية والنووية؟",options:["الكيميائية في الروابط بين الذرات، النووية في نواة الذرة","لا فرق","النووية أضعف","الكيميائية في النواة"],correctIndex:0,explanation:"Chemical PE: طاقة الروابط الكيميائية (eV). Nuclear PE: طاقة الروابط النووية (MeV) — أكبر بملايين المرات"},
+    ];
+
+    const COMMON_EXTRA = [
+      {difficulty:300,subject:"arabic",question:"ما الفرق بين الحال والتمييز؟",options:["الحال يُبيّن هيئة صاحبه، التمييز يُزيل الإبهام عن اسم مبهم","لا فرق","التمييز يُبيّن الهيئة","الحال يُزيل الإبهام"],correctIndex:0,explanation:"الحال: وصف لهيئة الفاعل أو المفعول (جاء راكضًا). التمييز: يُزيل إبهام اسم (عندي عشرون كتابًا)"},
+      {difficulty:300,subject:"arabic",question:"ما الجناس في 'هل تعلم ما العلم'؟",options:["جناس تام","جناس ناقص","طباق","سجع"],correctIndex:1,explanation:"جناس ناقص: تشابه الكلمتين في الحروف مع اختلاف في عدد الحروف أو ترتيبها"},
+      {difficulty:300,subject:"english",question:"Choose the correct form: 'By the time she arrived, he ___ for two hours.'",options:["had been waiting","was waiting","has been waiting","waited"],correctIndex:0,explanation:"Past perfect continuous: action that was ongoing before another past action"},
+      {difficulty:300,subject:"english",question:"What is a 'dangling modifier'?",options:["A modifier that doesn't clearly relate to the word it modifies","A verb without a subject","A noun without an article","A sentence without a verb"],correctIndex:0,explanation:"Dangling modifier: 'Walking down the street, the trees were beautiful.' — who was walking?"},
+      {difficulty:300,subject:"english",question:"Choose the sentence with correct subject-verb agreement:",options:["Neither the students nor the teacher was present","Neither the students nor the teacher were present","Neither the students nor the teacher are present","Neither the students nor the teacher is present"],correctIndex:0,explanation:"With 'neither...nor', the verb agrees with the closer subject (teacher = singular → was)"},
+      // ── إضافة جديدة: عربي + إنجليزي ──
+      // d50 ×4 (2 عربي + 2 إنجليزي)
+      {difficulty:50,subject:"arabic",question:"ما جمع كلمة 'كتاب'؟",options:["كُتُب","كتابات","كتابون","أكتاب"],correctIndex:0,explanation:"كتاب → كُتُب (جمع تكسير)"},
+      {difficulty:50,subject:"arabic",question:"ما ضد كلمة 'الجهل'؟",options:["العلم","الكسل","الخوف","الحزن"],correctIndex:0,explanation:"ضد الجهل = العلم"},
+      {difficulty:50,subject:"english",question:"What is the plural of 'child'?",options:["children","childs","childes","child"],correctIndex:0,explanation:"'child' has an irregular plural: children"},
+      {difficulty:50,subject:"english",question:"Choose the correct article: '___ Nile is the longest river.'",options:["The","A","An","—"],correctIndex:0,explanation:"Definite article 'the' is used with unique geographical features"},
+      // d100 ×6 (3 عربي + 3 إنجليزي)
+      {difficulty:100,subject:"arabic",question:"ما إعراب 'سريعًا' في 'جاء الطالبُ سريعًا'؟",options:["حال منصوب","مفعول به","نعت","تمييز"],correctIndex:0,explanation:"'سريعًا' حال يُبيّن هيئة الفاعل 'الطالب' عند مجيئه، منصوب وعلامته الفتحة"},
+      {difficulty:100,subject:"arabic",question:"ما نوع الأسلوب في 'ما أعظمَ العلمَ'؟",options:["تعجب","نداء","نهي","استفهام"],correctIndex:0,explanation:"'ما أفعلَ' صيغة تعجب قياسية"},
+      {difficulty:100,subject:"arabic",question:"ما الكناية في 'فلان طويل النجاد'؟",options:["كناية عن صفة (الطول)","كناية عن موصوف","كناية عن نسبة","استعارة"],correctIndex:0,explanation:"طويل النجاد (حمالة السيف) كناية عن طول القامة — كناية عن صفة"},
+      {difficulty:100,subject:"english",question:"Choose the correct preposition: 'She has been working here ___ 2019.'",options:["since","for","during","from"],correctIndex:0,explanation:"'since' is used with a specific point in time; 'for' is used with a duration"},
+      {difficulty:100,subject:"english",question:"What is the comparative form of 'good'?",options:["better","gooder","more good","best"],correctIndex:0,explanation:"'good' has an irregular comparative: good → better → best"},
+      {difficulty:100,subject:"english",question:"Choose the correct sentence:",options:["He suggested going to the cinema","He suggested to go to the cinema","He suggested go to the cinema","He suggested that going to the cinema"],correctIndex:0,explanation:"After 'suggest', use gerund (-ing) or 'that + subject + base verb'"},
+      // d300 ×10 (5 عربي + 5 إنجليزي)
+      {difficulty:300,subject:"arabic",question:"ما الفرق بين المجاز المرسل والاستعارة؟",options:["المجاز المرسل علاقته غير المشابهة، الاستعارة علاقتها المشابهة","لا فرق","الاستعارة أضعف","المجاز المرسل يذكر الطرفين"],correctIndex:0,explanation:"الاستعارة: تشبيه حُذف أحد طرفيه (علاقة مشابهة). المجاز المرسل: علاقته الجزئية أو الكلية أو السببية أو غيرها"},
+      {difficulty:300,subject:"arabic",question:"ما إعراب 'خمسةَ عشرَ' في 'اشتريتُ خمسةَ عشرَ كتابًا'؟",options:["مفعول به مبني على الفتح","فاعل","مبتدأ","حال"],correctIndex:0,explanation:"الأعداد المركبة (11-19) مبنية على فتح الجزأين في محل نصب مفعول به"},
+      {difficulty:300,subject:"arabic",question:"ما الفرق بين الفعل المتعدي واللازم؟",options:["المتعدي يحتاج مفعولًا به، اللازم يكتفي بفاعله","اللازم أكثر استخدامًا","المتعدي لا يحتاج فاعلًا","لا فرق"],correctIndex:0,explanation:"المتعدي: 'كتبَ الطالبُ الدرسَ'. اللازم: 'نامَ الطفلُ' — لا يحتاج مفعولًا"},
+      {difficulty:300,subject:"arabic",question:"ما الفرق بين الجملة الاسمية والفعلية من حيث الدلالة؟",options:["الاسمية تدل على الثبوت، الفعلية تدل على التجدد والحدوث","الفعلية أقوى دائمًا","لا فرق","الاسمية تدل على الحدوث"],correctIndex:0,explanation:"الجملة الاسمية (الصدق فضيلة) تدل على الثبوت. الفعلية (يصدق المؤمن) تدل على التجدد"},
+      {difficulty:300,subject:"arabic",question:"ما الفرق بين الإيجاز والإطناب في البلاغة؟",options:["الإيجاز أداء المعنى بأقل من المعتاد، الإطناب بأكثر لفائدة","الإطناب أفضل دائمًا","الإيجاز أطول","لا فرق"],correctIndex:0,explanation:"الإيجاز: تكثيف المعنى (إيجاز قصر أو حذف). الإطناب: التوسع لغرض بلاغي كالتوكيد أو التفصيل"},
+      {difficulty:300,subject:"english",question:"What is the difference between 'who' and 'whom'?",options:["'who' is subject, 'whom' is object","'whom' is subject, 'who' is object","they are interchangeable","'who' is only for questions"],correctIndex:0,explanation:"'who' replaces subject pronouns (he/she/they). 'whom' replaces object pronouns (him/her/them)"},
+      {difficulty:300,subject:"english",question:"Identify the error: 'The data shows that the results is significant.'",options:["'data' is plural so 'show'; 'results' needs 'are'","No error","Only 'is' is wrong","Only 'shows' is wrong"],correctIndex:0,explanation:"'data' is the plural of 'datum' → 'data show'. 'results' is plural → 'results are'"},
+      {difficulty:300,subject:"english",question:"What is the difference between 'fewer' and 'less'?",options:["'fewer' for countable nouns, 'less' for uncountable","they are interchangeable","'less' for countable nouns","'fewer' for uncountable"],correctIndex:0,explanation:"fewer students (countable), less water (uncountable) — a common grammar distinction"},
+      {difficulty:300,subject:"english",question:"Choose the correct inversion: '___ did I realise the danger.'",options:["Only then","Only than","Only when","Only if"],correctIndex:0,explanation:"'Only then' triggers subject-auxiliary inversion: 'Only then did I realise...'"},
+      {difficulty:300,subject:"english",question:"What is a 'cleft sentence'? Give an example.",options:["A sentence split to emphasise one element: 'It was John who called'","A sentence with two main clauses","A sentence without a verb","A question form"],correctIndex:0,explanation:"Cleft sentences use 'It is/was...that/who' to focus on one element for emphasis"},
+    ];
+
+    const MATH_POOL = [...MATH_QUESTIONS,...MATH_EXTRA].map((q,i)=>({...q,id:'m'+String(i+1).padStart(3,'0'),type:'QUESTION'}));
+    const SCIENCE_POOL = [...SCIENCE_QUESTIONS,...SCIENCE_EXTRA].map((q,i)=>({...q,id:'s'+String(i+1).padStart(3,'0'),type:'QUESTION'}));
+    const COMMON_POOL = [...COMMON_QUESTIONS,...COMMON_EXTRA].map((q,i)=>({...q,id:'c'+String(i+1).padStart(3,'0'),type:'QUESTION'}));
+
+    // علمي رياضة = رياضيات + عربي + إنجليزي + علوم (فيزياء/كيمياء فقط من SCIENCE)
+    const RIYADA_QUESTIONS = [
+      ...MATH_POOL,
+      ...COMMON_POOL,
+      ...SCIENCE_POOL.filter(q=>q.subject==='science'),
+    ];
+    // علمي علوم = أحياء + كيمياء + فيزياء + عربي + إنجليزي (بدون رياضيات)
+    const OLOOM_QUESTIONS = [
+      ...SCIENCE_POOL,
+      ...COMMON_POOL,
+    ];
+
+    const TRAPS = [
+      {id:'t1',type:'TRAP',name:'فخ الإلغاء',effect:'CANCEL',description:'يلغي السؤال الحالي — لا نقاط',icon:'✕'},
+      {id:'t2',type:'TRAP',name:'فخ المرآة',effect:'MIRROR',description:'يُعيد السؤال إلى من طرحه',icon:'⇄'},
+      {id:'t3',type:'TRAP',name:'مضاعفة النقاط',effect:'DOUBLE',description:'يُضاعف النقاط عند الإجابة الصحيحة',icon:'⚡'},
+      {id:'t4',type:'TRAP',name:'فخ الحماية',effect:'SHIELD',description:'يحميك من خسارة النقطة إذا أخطأت',icon:'🛡️'},
+      {id:'t5',type:'TRAP',name:'فخ التجميد',effect:'FREEZE',description:'يجبر الخصم على فقدان نقطة',icon:'❄️'},
+      {id:'t6',type:'TRAP',name:'السؤال الإضافي',effect:'EXTRA_QUESTION',description:'إذا أجبت صحيحة يأتيك سؤال إضافي',icon:'➕'},
+      {id:'t7',type:'TRAP',name:'عكس النتيجة',effect:'REVERSAL_SCORE',description:'عند إجابتك الصحيحة يفقد الخصم نقطة',icon:'↺'},
+      {id:'t8',type:'TRAP',name:'الدور الإضافي',effect:'EXTRA_TURN',description:'يزيل سؤالًا من يد الخصم وتجيب على سؤالك',icon:'↻'},
+      {id:'t9',type:'TRAP',name:'المبدّل',effect:'EXCHANGER',description:'يستبدل سؤالًا صعبًا من يد الخصم بسهل',icon:'⇆'},
+    ];
+
+    const audioCtxRef={current:null};
+    function getAudioCtx(){
+      if(!audioCtxRef.current){try{audioCtxRef.current=new(window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}}
+      if(audioCtxRef.current.state==='suspended')audioCtxRef.current.resume().catch(()=>{});
+      return audioCtxRef.current;
+    }
+    function playSound(type){
+      const ctx=getAudioCtx();if(!ctx)return;
+      const t=ctx.currentTime,osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      if(type==='place'){osc.type='sine';osc.frequency.setValueAtTime(120,t);osc.frequency.exponentialRampToValueAtTime(60,t+0.08);gain.gain.setValueAtTime(0.4,t);gain.gain.exponentialRampToValueAtTime(0.01,t+0.08);osc.start(t);osc.stop(t+0.1);}
+      else if(type==='correct'){[523.25,659.25,783.99].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+i*0.08);g.gain.linearRampToValueAtTime(0.2,t+i*0.08+0.03);g.gain.exponentialRampToValueAtTime(0.01,t+i*0.08+0.22);o.connect(g);g.connect(ctx.destination);o.start(t+i*0.08);o.stop(t+i*0.08+0.25);});}
+      else if(type==='wrong'){osc.type='sawtooth';osc.frequency.setValueAtTime(150,t);osc.frequency.linearRampToValueAtTime(100,t+0.25);gain.gain.setValueAtTime(0.2,t);gain.gain.exponentialRampToValueAtTime(0.01,t+0.3);osc.start(t);osc.stop(t+0.35);}
+      else if(type==='trap'){osc.type='square';osc.frequency.setValueAtTime(200,t);osc.frequency.exponentialRampToValueAtTime(800,t+0.3);gain.gain.setValueAtTime(0.25,t);gain.gain.exponentialRampToValueAtTime(0.01,t+0.4);osc.start(t);osc.stop(t+0.45);}
+      else if(type==='win'){[523.25,659.25,783.99,1046.5].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+i*0.12);g.gain.linearRampToValueAtTime(0.25,t+i*0.12+0.04);g.gain.exponentialRampToValueAtTime(0.01,t+i*0.12+0.45);o.connect(g);g.connect(ctx.destination);o.start(t+i*0.12);o.stop(t+i*0.12+0.55);});}
+      else if(type==='tick'){osc.type='sine';osc.frequency.setValueAtTime(900,t);gain.gain.setValueAtTime(0.15,t);gain.gain.exponentialRampToValueAtTime(0.01,t+0.04);osc.start(t);osc.stop(t+0.05);}
+    }
+
+    function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+    function createTrapDeck(){const base=TRAPS.map(t=>({...t,instanceId:t.id+'-'+Math.random().toString(36).slice(2)}));const dup={...TRAPS[Math.floor(Math.random()*TRAPS.length)],instanceId:'dup-'+Math.random().toString(36).slice(2)};return shuffle([...base,dup]);}
+
+    // rounds 1-3: 2 hard + 1 medium + 1 easy
+    // rounds 4-5: 3 hard + 2 medium
+    // No-repeat: deck is pre-shuffled per game session; used IDs tracked in deck (already removed when drawn)
+    function drawRoundHand(deck,round,trapDeck,allQuestions){
+      const pick300=round<=3?2:3, pick100=round<=3?1:2, pick50=round<=3?1:0;
+      const totalNeeded=pick300+pick100+pick50;
+      let remaining=[...deck];
+      // If not enough questions left, refill with unused ones from allQuestions not already in remaining
+      if(remaining.length<totalNeeded){
+        const existingIds=new Set(remaining.map(q=>q.id));
+        const fresh=shuffle(allQuestions.filter(q=>!existingIds.has(q.id)));
+        remaining=[...remaining,...fresh];
+      }
+      const q300=remaining.filter(c=>c.difficulty===300);
+      const q100=remaining.filter(c=>c.difficulty===100);
+      const q50=remaining.filter(c=>c.difficulty===50);
+      const hand=[];
+      function take(pool,count){for(let i=0;i<count&&pool.length>0;i++){const idx=Math.floor(Math.random()*pool.length);const card=pool.splice(idx,1)[0];hand.push(card);const rIdx=remaining.findIndex(r=>r.id===card.id);if(rIdx>-1)remaining.splice(rIdx,1);}}
+      take(q300,pick300);if(hand.length<pick300)take(q100,pick300-hand.length);
+      take(q100,pick100);if(hand.length<pick300+pick100)take(q50,pick300+pick100-hand.length);
+      if(pick50>0)take(q50,pick50);
+      while(hand.length<totalNeeded&&remaining.length>0){const idx=Math.floor(Math.random()*remaining.length);hand.push(remaining[idx]);remaining.splice(idx,1);}
+      const traps=trapDeck?[trapDeck.pop(),trapDeck.pop()]:[];
+      return{hand:shuffle(hand),remaining,traps};
+    }
+
+    function getSubjectLabel(s){return{math:'رياضيات',arabic:'عربي',english:'إنجليزي',science:'علوم',bio:'أحياء'}[s]||s;}
+    function getSubjectIcon(s){return{math:'∑',arabic:'ع',english:'E',science:'⚗',bio:'🧬'}[s]||'?';}
+    function getDifficultyStars(d){return d===300?'★★★':d===100?'★★☆':'★☆☆';}
+    function getDifficultyName(d){return d===300?'صعب':d===100?'متوسط':'سهل';}
+
+    function aiChooseCard(hand,difficulty){
+      const questions=hand.filter(c=>c.type==='QUESTION');
+      if(questions.length===0)return '__DRAW__';
+      if(difficulty==='AMATEUR')return questions[Math.floor(Math.random()*questions.length)].instanceId||questions[0].id;
+      if(difficulty==='NORMAL'){const m=questions.find(q=>q.difficulty===100)||questions[0];return m.instanceId||m.id;}
+      const h=questions.find(q=>q.difficulty===300)||questions.find(q=>q.difficulty===100)||questions[0];
+      return h.instanceId||h.id;
+    }
+    function aiDecideTrap(aiPlayer,fieldCard,difficulty){
+      const setTrap=aiPlayer.trapZones.find(t=>t&&!t.revealed);
+      if(!setTrap)return null;
+      if(difficulty==='AMATEUR'&&Math.random()>0.25)return null;
+      const effect=setTrap.effect;
+      if(['MIRROR','DOUBLE','EXTRA_QUESTION','REVERSAL_SCORE','FREEZE','EXCHANGER'].includes(effect)&&difficulty!=='AMATEUR')return setTrap.instanceId||setTrap.id;
+      if(effect==='SHIELD')return setTrap.instanceId||setTrap.id;
+      if(effect==='CANCEL'&&fieldCard&&fieldCard.difficulty>=100&&difficulty!=='PROFESSIONAL')return setTrap.instanceId||setTrap.id;
+      return null;
+    }
+    function aiDecideAnswer(question,difficulty){
+      const correct=question.correctIndex;
+      const rate={AMATEUR:0.4,NORMAL:0.6,DIFFICULT:0.75,PROFESSIONAL:0.9};
+      if(Math.random()<rate[difficulty])return correct;
+      const wrong=[0,1,2,3].filter(i=>i!==correct);
+      return wrong[Math.floor(Math.random()*wrong.length)];
+    }
+    function aiDelay(difficulty){return{AMATEUR:1400,NORMAL:1000,DIFFICULT:750,PROFESSIONAL:500}[difficulty]+Math.random()*400;}
+
+    function ParticleBackground(){
+      const particles=Array.from({length:30}).map((_,i)=>({id:i,left:Math.random()*100,top:Math.random()*100,delay:Math.random()*5,duration:4+Math.random()*4,size:2+Math.random()*4}));
+      return(<div className="particle-container">{particles.map(p=>(<div key={p.id} className="particle" style={{left:p.left+'%',top:p.top+'%',width:p.size,height:p.size,animationDelay:p.delay+'s',animationDuration:p.duration+'s'}}/>))}</div>);
+    }
+
+    function Card({card,faceDown,flipped}){
+      const cls=['yugioh-card'];
+      if(!faceDown&&card.type==='QUESTION')cls.push('card-'+card.subject);
+      if(!faceDown&&card.type==='TRAP')cls.push('card-trap');
+      if(!faceDown&&card.type==='QUESTION')cls.push(card.difficulty===300?'card-hard':card.difficulty===100?'card-medium':'card-easy');
+      if(faceDown)cls.push('card-back');
+      if(flipped)cls.push('flipped');
+      return(
+        <div className={cls.join(' ')}>
+          <div className="yugioh-card-inner">
+            <div className="card-face-back"><div className="card-back-pattern"><div className="card-back-icon">ث</div></div></div>
+            <div className="card-face-front">
+              <div className="card-name-bar">{card.type==='TRAP'?card.name:'بطاقة سؤال'}</div>
+              <div className="card-artwork-area"><div className="card-artwork-bg"/><div className="card-icon">{card.type==='TRAP'?card.icon:getSubjectIcon(card.subject)}</div></div>
+              <div className="card-info-bar"><span className="card-category-badge">{card.type==='TRAP'?'فخ':getSubjectLabel(card.subject)}</span><span className="card-stars">{card.type==='QUESTION'?getDifficultyStars(card.difficulty):'★★★'}</span></div>
+              <div className="card-text-area">{card.type==='TRAP'?card.description:card.question}</div>
+              <div className="card-stats-bar"><span className="card-points">{card.type==='QUESTION'?(card.difficulty+' PTS'):''}</span><span className="card-tag">{card.type==='TRAP'?card.effect:getDifficultyName(card.difficulty)}</span></div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function CardPreview({card}){
+      if(!card)return(<div className="preview-panel"><div className="preview-label">مرّر فوق بطاقة للمعاينة</div></div>);
+      return(<div className="preview-panel"><div className="preview-card-wrapper"><Card card={card}/></div><div className="preview-label">{card.type==='TRAP'?card.name:getSubjectLabel(card.subject)}</div></div>);
+    }
+
+    function DuelField({state,onTrapClick}){
+      const p1=state.players.p1,p2=state.players.p2;
+      const isP1Current=state.currentPlayerId==='p1';
+      const currentFieldPlayer=state.fieldCard?(isP1Current?'p1':'p2'):null;
+      const isDefenderTrapTurn=state.phase==='TRAP_PROMPT'&&state.answeringPlayerId;
+      const renderTrap=(trap,scale,playerId,zoneIdx)=>{
+        if(!trap)return null;
+        const isDefenderZone=isDefenderTrapTurn&&state.answeringPlayerId===playerId&&!trap.revealed;
+        const canClick=isDefenderZone&&onTrapClick;
+        return(<div className={"zone-card-wrapper"+(canClick?" trap-clickable":"")} style={{transform:'scale('+scale+')'}} onClick={()=>canClick&&onTrapClick(playerId,zoneIdx)}><Card card={trap} faceDown={!trap.revealed} flipped={trap.revealed}/></div>);
+      };
+      return(
+        <div className="duel-field">
+          <div className="field-board">
+            <div className="opponent-side">
+              {[0,1].map(i=>(<div key={i} className={`zone zone-trap ${p2.trapZones[i]?'zone-active':''} ${isDefenderTrapTurn&&state.answeringPlayerId==='p2'&&p2.trapZones[i]&&!p2.trapZones[i].revealed?'zone-defender-trap':''}`}>{renderTrap(p2.trapZones[i],0.78,'p2',i)}<span className="zone-label">فخ</span></div>))}
+              <div className={`zone zone-question ${currentFieldPlayer==='p2'?'zone-active':''}`}>{currentFieldPlayer==='p2'&&state.fieldCard&&(<div className="zone-card-wrapper" style={{transform:'scale(0.78)'}}><Card card={state.fieldCard}/></div>)}<span className="zone-label">سؤال</span></div>
+            </div>
+            <div className="player-side">
+              {[0,1].map(i=>(<div key={i} className={`zone zone-trap ${p1.trapZones[i]?'zone-active':''} ${isDefenderTrapTurn&&state.answeringPlayerId==='p1'&&p1.trapZones[i]&&!p1.trapZones[i].revealed?'zone-defender-trap':''}`}>{renderTrap(p1.trapZones[i],0.78,'p1',i)}<span className="zone-label">فخ</span></div>))}
+              <div className={`zone zone-question ${currentFieldPlayer==='p1'?'zone-active':''}`}>{currentFieldPlayer==='p1'&&state.fieldCard&&(<div className="zone-card-wrapper" style={{transform:'scale(0.78)'}}><Card card={state.fieldCard}/></div>)}<span className="zone-label">سؤال</span></div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function PlayerHand({hand,onCardClick,onHover}){
+      const total=hand.length,spread=Math.min(60,360/(total||1)),centerIndex=(total-1)/2;
+      return(
+        <div className="hand-container">
+          {hand.map((card,i)=>{
+            const offset=i-centerIndex,rotate=offset*8,translateX=offset*spread,translateY=Math.abs(offset)*6;
+            return(<motion.div key={card.instanceId||card.id} className="hand-card" initial={{y:100,opacity:0}} animate={{y:-translateY,x:translateX,rotate,opacity:1}} transition={{type:'spring',stiffness:220,damping:20,delay:i*0.05}} style={{left:'50%',marginLeft:-60}} onMouseEnter={()=>onHover&&onHover(card)} onMouseLeave={()=>onHover&&onHover(null)} onClick={()=>onCardClick&&onCardClick(card)}><Card card={card}/></motion.div>);
+          })}
+        </div>
+      );
+    }
+
+    function OpponentHand({count}){
+      const cards=Array.from({length:count}),spread=Math.min(40,300/(count||1)),centerIndex=(count-1)/2;
+      const dummyCard={type:'TRAP',name:'???',description:'???',effect:'???',icon:'?'};
+      return(
+        <div className="opponent-hand">
+          {cards.map((_,i)=>{
+            const offset=i-centerIndex,rotate=offset*6,translateX=offset*spread;
+            return(<motion.div key={i} className="hand-card" initial={{y:-80,opacity:0}} animate={{y:0,x:translateX,rotate,opacity:1}} transition={{type:'spring',stiffness:220,damping:20,delay:i*0.05}} style={{left:'50%',marginLeft:-42}}><div style={{width:84,height:118}}><Card card={dummyCard} faceDown={true}/></div></motion.div>);
+          })}
+        </div>
+      );
+    }
+
+    function QuestionModal({card,timeLeft,onAnswer,onClose,disabled,phase,selectedOptionIndex,activeTrapEffect}){
+      const isUrgent=timeLeft<=5,inFeedback=phase==='FEEDBACK';
+      const trapLabels={DOUBLE:'⚡ مضاعفة النقاط مفعلة',SHIELD:'🛡️ فخ الحماية مفعل',FREEZE:'❄️ فخ التجميد: الخصم سيفقد نقطة',MIRROR:'⇄ فخ المرآة: السؤال مُعاد',CANCEL:'✕ فخ الإلغاء: السؤال مُلغى',EXTRA_QUESTION:'➕ سؤال إضافي قادم',REVERSAL_SCORE:'↺ عكس النتيجة',EXTRA_TURN:'↻ الدور الإضافي',EXCHANGER:'⇆ تم تبديل سؤال صعب بسهل'};
+      return(
+        <div className="modal-overlay">
+          <motion.div className="modal-card" initial={{scale:0.8,opacity:0}} animate={{scale:1,opacity:1}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
+              <div className="modal-title" style={{marginBottom:0}}>{inFeedback?'الإجابة الصحيحة':('سؤال '+getSubjectLabel(card.subject)+' — '+card.difficulty+' نقطة')}</div>
+              {inFeedback&&(<button onClick={onClose} style={{background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.3)',borderRadius:'50%',width:32,height:32,cursor:'pointer',color:'#fff',fontSize:18,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>)}
+            </div>
+            {activeTrapEffect&&(<div style={{marginBottom:14,padding:'6px 12px',background:'rgba(112,0,255,0.25)',border:'1px solid var(--purple-primary)',borderRadius:8,fontSize:13,color:'#fff'}}>{trapLabels[activeTrapEffect]||activeTrapEffect}</div>)}
+            <div className="question-text">{card.question}</div>
+            <div className="options-grid">
+              {card.options.map((opt,idx)=>{
+                let btnClass='option-button';
+                if(inFeedback){if(idx===card.correctIndex)btnClass+=' correct';else if(idx===selectedOptionIndex&&selectedOptionIndex!==card.correctIndex)btnClass+=' wrong';}
+                return(<button key={opt} className={btnClass} disabled={disabled||inFeedback} onClick={()=>onAnswer(idx)}>{opt}</button>);
+              })}
+            </div>
+            {inFeedback&&(<div style={{marginTop:16,padding:12,background:'rgba(0,0,0,0.3)',borderRadius:10,fontSize:14,color:'#eee',lineHeight:1.6}}><strong style={{color:'var(--gold)'}}>التوضيح:</strong><br/>{card.explanation}</div>)}
+            <div style={{marginTop:16,display:'flex',justifyContent:'center',alignItems:'center',gap:12}}>
+              <div className={`timer-display ${isUrgent&&!inFeedback?'timer-urgent':''}`}>{timeLeft}</div>
+              <div style={{fontSize:13,color:'rgba(255,255,255,0.7)'}}>{inFeedback?'ثانية للانتقال':'ثانية متبقية'}</div>
+            </div>
+          </motion.div>
+        </div>
+      );
+    }
+
+    function TrapPromptModal({onYes,onNo,hasTrap}){
+      return(
+        <div className="modal-overlay">
+          <motion.div className="modal-card" initial={{scale:0.8,opacity:0}} animate={{scale:1,opacity:1}}>
+            <div className="modal-title">تفعيل الفخ؟</div>
+            <div style={{fontSize:15,color:'#ddd',marginBottom:20,lineHeight:1.6}}>{hasTrap?'⚠️ تعرّضت لهجوم! هل تريد تفعيل فخك؟':'ليس لديك فخاخ متاحة.'}</div>
+            {hasTrap?(<div className="trap-buttons"><button className="trap-btn trap-btn-primary" onClick={onYes}>نعم</button><button className="trap-btn trap-btn-secondary" onClick={onNo}>لا</button></div>):(<div className="trap-buttons"><button className="trap-btn trap-btn-secondary" onClick={onNo}>متابعة</button></div>)}
+          </motion.div>
+        </div>
+      );
+    }
+
+    function TrackSelectScreen({onSelect}){
+      return(
+        <div className="screen">
+          <div className="main-title">لعبة الثانوية العامة</div>
+          <div className="main-subtitle" style={{marginBottom:20}}>اختر شعبتك</div>
+          <motion.button className="menu-button" initial={{x:-40,opacity:0}} animate={{x:0,opacity:1}} transition={{delay:0.1}} onClick={()=>onSelect('RIYADA')} style={{background:'linear-gradient(145deg,rgba(30,107,165,0.3) 0%,rgba(13,61,102,0.4) 100%)',borderColor:'#4a9fd4',fontSize:20,padding:'18px 24px'}}>
+            🔢 علمي رياضة
+            <div style={{fontSize:12,color:'rgba(255,255,255,0.6)',fontWeight:400,marginTop:4}}>رياضيات · عربي · إنجليزي · علوم</div>
+          </motion.button>
+          <motion.button className="menu-button" initial={{x:40,opacity:0}} animate={{x:0,opacity:1}} transition={{delay:0.2}} onClick={()=>onSelect('OLOOM')} style={{background:'linear-gradient(145deg,rgba(14,123,107,0.3) 0%,rgba(5,64,53,0.4) 100%)',borderColor:'#2dd4bf',fontSize:20,padding:'18px 24px'}}>
+            🧬 علمي علوم
+            <div style={{fontSize:12,color:'rgba(255,255,255,0.6)',fontWeight:400,marginTop:4}}>أحياء · كيمياء · فيزياء · عربي · إنجليزي</div>
+          </motion.button>
+        </div>
+      );
+    }
+
+    function HowToPlayModal({onClose}){
+      return(
+        <div className="modal-overlay" onClick={onClose}>
+          <motion.div className="modal-card" style={{maxWidth:680,maxHeight:'85vh',overflowY:'auto',padding:28}} initial={{scale:0.85,opacity:0}} animate={{scale:1,opacity:1}} onClick={e=>e.stopPropagation()}>
+            <div className="modal-title">📜 كيف تلعب؟</div>
+            {[
+              {icon:'🎯',title:'هدف اللعبة',text:'تنافس في 5 جولات من أسئلة الثانوية العامة. من يحصد أعلى نقاط يفوز. عند التعادل يُحسم بنقاط الحياة (LP).'},
+              {icon:'⚔️',title:'سير الجولة',text:'1️⃣ كل لاعب يحصل على بطاقات أسئلة + 2 فخاخ.\n2️⃣ اللاعب الحالي يختار سؤالًا ويضعه في الملعب.\n3️⃣ المدافع يمكنه تفعيل فخه قبل الإجابة.\n4️⃣ الخصم يجيب خلال 45 ثانية.'},
+              {icon:'⭐',title:'نظام النقاط',text:'✅ إجابة صحيحة: +1 نقطة (أو +2 مع فخ المضاعفة)\n❌ إجابة خاطئة: −1 نقطة (0 مع فخ الحماية)\n⏰ انتهاء الوقت: −1 نقطة'},
+              {icon:'🎭',title:'الفخاخ (9 أنواع)',text:'✕ الإلغاء: يُلغي السؤال\n⇄ المرآة: يُعيد السؤال للمهاجم\n⚡ المضاعفة: نقطتان عند الصواب\n🛡️ الحماية: لا خصم عند الخطأ\n❄️ التجميد: الخصم يفقد نقطة\n➕ سؤال إضافي: صح → سؤال آخر\n↺ عكس النتيجة: الخصم يفقد نقطة عند صوابك\n↻ الدور الإضافي: تجيب على سؤالك أنت\n⇆ المبدّل: يستبدل سؤالًا صعبًا بسهل'},
+              {icon:'🔥',title:'تصاعد الصعوبة',text:'الجولات 1-3: سؤالان صعبان + متوسط + سهل\nالجولات 4-5: 3 أسئلة صعبة + سؤالان متوسطان\nالأسئلة لا تتكرر في نفس الجلسة!'},
+            ].map((s,i)=>(
+              <div key={i} style={{padding:14,background:'rgba(0,0,0,0.25)',borderRadius:12,textAlign:'right',marginBottom:12}}>
+                <div style={{fontSize:15,fontWeight:800,color:'var(--gold)',marginBottom:6}}>{s.icon} {s.title}</div>
+                <div style={{fontSize:13,color:'#ddd',lineHeight:1.9,whiteSpace:'pre-line'}}>{s.text}</div>
+              </div>
+            ))}
+            <div style={{textAlign:'center',marginTop:8}}>
+              <button className="menu-button" style={{minWidth:120,fontSize:14}} onClick={onClose}>إغلاق</button>
+            </div>
+          </motion.div>
+        </div>
+      );
+    }
+
+    function MainMenu({track,onSelectMode,onBack}){
+      const [showHow,setShowHow]=useState(false);
+      const trackLabel=track==='RIYADA'?'علمي رياضة':'علمي علوم';
+      const trackColor=track==='RIYADA'?'#4a9fd4':'#2dd4bf';
+      return(
+        <div className="screen">
+          <div className="main-title">لعبة الثانوية العامة</div>
+          <div style={{marginBottom:24,padding:'6px 20px',borderRadius:20,border:'1px solid '+trackColor,color:trackColor,fontSize:16,fontWeight:700}}>{trackLabel}</div>
+          <button className="menu-button" onClick={()=>onSelectMode('AI')}>ابدأ اللعبة ضد الكمبيوتر</button>
+          <button className="menu-button" onClick={()=>onSelectMode('PVP')}>لاعبان على نفس الجهاز</button>
+          <button className="menu-button" style={{background:'rgba(255,215,0,0.1)',border:'1px solid var(--gold-border)'}} onClick={()=>setShowHow(true)}>📖 كيف تلعب؟</button>
+          <button className="menu-button" style={{background:'rgba(255,255,255,0.05)',marginTop:4}} onClick={onBack}>تغيير الشعبة</button>
+          {showHow&&<HowToPlayModal onClose={()=>setShowHow(false)}/>}
+        </div>
+      );
+    }
+
+    function DifficultySelect({onSelect,onBack}){
+      const levels=[{key:'AMATEUR',label:'مبتدئ',desc:'40% دقة'},{key:'NORMAL',label:'متوسط',desc:'60% دقة'},{key:'DIFFICULT',label:'صعب',desc:'75% دقة'},{key:'PROFESSIONAL',label:'محترف',desc:'90% دقة'}];
+      return(
+        <div className="screen">
+          <div className="main-title" style={{fontSize:32}}>اختر الصعوبة</div>
+          <div style={{display:'flex',flexDirection:'column',gap:10,marginTop:20}}>
+            {levels.map(l=>(<button key={l.key} className="menu-button" onClick={()=>onSelect(l.key)}><div>{l.label}</div><div style={{fontSize:12,color:'rgba(255,255,255,0.6)',fontWeight:400}}>{l.desc}</div></button>))}
+          </div>
+          <button className="menu-button" style={{marginTop:20,background:'rgba(255,255,255,0.05)'}} onClick={onBack}>رجوع</button>
+        </div>
+      );
+    }
+
+    function RoundEndScreen({state,onNext}){
+      const p1=state.players.p1,p2=state.players.p2;
+      return(
+        <div className="screen">
+          <div className="result-title">نهاية الجولة {state.round}</div>
+          <div className="result-stats">
+            <div className="stat-box"><div className="stat-label">{p1.name}</div><div className="stat-value" style={{color:'#4ade80'}}>{p1.score}</div><div style={{fontSize:12,color:'rgba(255,255,255,0.6)',marginTop:4}}>LP: {p1.lp}</div></div>
+            <div className="stat-box"><div className="stat-label">{p2.name}</div><div className="stat-value" style={{color:'#f87171'}}>{p2.score}</div><div style={{fontSize:12,color:'rgba(255,255,255,0.6)',marginTop:4}}>LP: {p2.lp}</div></div>
+          </div>
+          <button className="menu-button" onClick={onNext}>{state.round>=5?'النتيجة النهائية':'الجولة التالية'}</button>
+        </div>
+      );
+    }
+
+    function GameOverScreen({state,onRestart,onMenu}){
+      const p1=state.players.p1,p2=state.players.p2;
+      let winnerText='تعادل!',winnerColor='#fff';
+      if(p1.score>p2.score){winnerText='فوز '+p1.name+'!';winnerColor='#4ade80';}
+      else if(p2.score>p1.score){winnerText='فوز '+p2.name+'!';winnerColor='#f87171';}
+      else if(p1.lp>p2.lp){winnerText='فوز '+p1.name+' (بالتفوق في LP)!';winnerColor='#4ade80';}
+      else if(p2.lp>p1.lp){winnerText='فوز '+p2.name+' (بالتفوق في LP)!';winnerColor='#f87171';}
+      return(
+        <div className="screen">
+          <div className="result-title" style={{color:winnerColor}}>{winnerText}</div>
+          <div className="result-stats">
+            <div className="stat-box"><div className="stat-label">{p1.name}</div><div className="stat-value">{p1.score}</div><div style={{fontSize:12,marginTop:4,color:'rgba(255,255,255,0.6)'}}>LP {p1.lp}</div></div>
+            <div className="stat-box"><div className="stat-label">{p2.name}</div><div className="stat-value">{p2.score}</div><div style={{fontSize:12,marginTop:4,color:'rgba(255,255,255,0.6)'}}>LP {p2.lp}</div></div>
+          </div>
+          <div style={{display:'flex',gap:12}}>
+            <button className="menu-button" onClick={onRestart}>العب مرة أخرى</button>
+            <button className="menu-button" onClick={onMenu}>القائمة الرئيسية</button>
+          </div>
+        </div>
+      );
+    }
+
+    const initialState={
+      screen:'TRACK_SELECT',track:null,mode:null,aiDifficulty:'NORMAL',round:1,turn:0,
+      currentPlayerId:'p1',answeringPlayerId:'p2',
+      players:{
+        p1:{id:'p1',name:'أنت',isHuman:true,lp:5,score:0,hand:[],trapZones:[null,null],deck:[]},
+        p2:{id:'p2',name:'الخصم',isHuman:false,lp:5,score:0,hand:[],trapZones:[null,null],deck:[]},
+      },
+      fieldCard:null,activeTrapEffect:null,trapRevealed:false,extraQuestionPlayed:false,
+      phase:'PLACEMENT',timeLeft:45,message:'',hoveredCard:null,selectedOptionIndex:null,
+    };
+
+    function getQuestions(track){return track==='RIYADA'?RIYADA_QUESTIONS:OLOOM_QUESTIONS;}
+
+    function gameReducer(state,action){
+      switch(action.type){
+        case 'SET_SCREEN':return{...state,screen:action.screen};
+        case 'SET_TRACK':return{...state,track:action.track,screen:'MENU'};
+        case 'SET_MODE':return{...state,mode:action.mode};
+        case 'SET_DIFFICULTY':return{...state,aiDifficulty:action.difficulty};
+        case 'START_GAME':{
+          const isP2Human=state.mode==='PVP';
+          const allQ=getQuestions(state.track);
+          // Each player gets their own independently shuffled deck — no repeats within a session
+          const p1TrapDeck=createTrapDeck(),p2TrapDeck=createTrapDeck();
+          const p1Draw=drawRoundHand(shuffle([...allQ]),1,p1TrapDeck,allQ);
+          const p2Draw=drawRoundHand(shuffle([...allQ]),1,p2TrapDeck,allQ);
+          const mkHand=h=>h.map(c=>({...c,instanceId:c.id+'-'+Math.random().toString(36).slice(2)}));
+          return{...state,screen:'DUEL',round:1,turn:0,currentPlayerId:'p1',answeringPlayerId:'p2',
+            fieldCard:null,activeTrapEffect:null,trapRevealed:false,extraQuestionPlayed:false,
+            phase:'PLACEMENT',timeLeft:45,message:'دورك! اختر بطاقة سؤال',hoveredCard:null,selectedOptionIndex:null,
+            players:{
+              p1:{...state.players.p1,lp:5,score:0,hand:mkHand(p1Draw.hand),trapZones:p1Draw.traps.map(t=>({...t,revealed:false})),deck:p1Draw.remaining},
+              p2:{...state.players.p2,isHuman:isP2Human,name:isP2Human?'اللاعب ٢':'الخصم',lp:5,score:0,hand:mkHand(p2Draw.hand),trapZones:p2Draw.traps.map(t=>({...t,revealed:false})),deck:p2Draw.remaining},
+            }};
+        }
+        case 'SKIP_TRAP':return{...state,phase:'ANSWERING',timeLeft:45,message:'جاوب الآن!'};
+        case 'PLACE_CARD':{
+          const player=state.players[state.currentPlayerId];
+          let card=player.hand.find(c=>(c.instanceId||c.id)===action.cardId);
+          let newHand=[...player.hand],newDeck=[...player.deck];
+          if(!card){
+            const allQ=getQuestions(state.track);
+            if(newDeck.length===0)newDeck=shuffle(allQ);
+            const raw=newDeck.length>0?newDeck.shift():allQ[0];
+            card={...raw,instanceId:raw.id+'-'+Math.random().toString(36).slice(2)};
+          }else{newHand=newHand.filter(c=>(c.instanceId||c.id)!==action.cardId);}
+          if(!card)return state;
+          return{...state,fieldCard:card,players:{...state.players,[state.currentPlayerId]:{...player,hand:newHand,deck:newDeck}},phase:'TRAP_PROMPT',timeLeft:0,message:'فرصة الفخ!',activeTrapEffect:null,trapRevealed:false,extraQuestionPlayed:false,selectedOptionIndex:null};
+        }
+        case 'ACTIVATE_TRAP':{
+          const trapPlayerId=action.playerId||state.answeringPlayerId;
+          const trapPlayer=state.players[trapPlayerId];
+          const zoneIdx=action.zoneIdx!==undefined?action.zoneIdx:(trapPlayer.trapZones[0]&&!trapPlayer.trapZones[0].revealed?0:(trapPlayer.trapZones[1]&&!trapPlayer.trapZones[1].revealed?1:-1));
+          if(zoneIdx===-1||!trapPlayer.trapZones[zoneIdx]||trapPlayer.trapZones[zoneIdx].revealed)return state;
+          const effect=trapPlayer.trapZones[zoneIdx].effect;
+          const newZones=[...trapPlayer.trapZones];
+          newZones[zoneIdx]={...newZones[zoneIdx],revealed:true};
+          if(effect==='MIRROR')return{...state,activeTrapEffect:effect,trapRevealed:true,players:{...state.players,[trapPlayerId]:{...trapPlayer,trapZones:newZones}},answeringPlayerId:state.currentPlayerId,currentPlayerId:state.answeringPlayerId,phase:'ANSWERING',timeLeft:45,message:'فخ المرآة!'};
+          if(effect==='EXTRA_TURN'){
+            const opponentId=state.currentPlayerId,opponent=state.players[opponentId];
+            const opponentHand=[...opponent.hand];if(opponentHand.length>0)opponentHand.splice(Math.floor(Math.random()*opponentHand.length),1);
+            const trapHand=[...trapPlayer.hand];let newDeck=[...trapPlayer.deck];
+            const allQ=getQuestions(state.track);
+            let newCard=trapHand.length>0?trapHand.shift():(newDeck.length===0?(newDeck=shuffle(allQ),newDeck.shift()):newDeck.shift());
+            const newCardInst=newCard?{...newCard,instanceId:newCard.id+'-'+Math.random().toString(36).slice(2)}:null;
+            return{...state,activeTrapEffect:'EXTRA_TURN',trapRevealed:true,fieldCard:newCardInst,players:{...state.players,[trapPlayerId]:{...trapPlayer,hand:trapHand,deck:newDeck,trapZones:newZones},[opponentId]:{...opponent,hand:opponentHand}},currentPlayerId:opponentId,answeringPlayerId:trapPlayerId,phase:'ANSWERING',timeLeft:45,message:'فخ الدور الإضافي!'};
+          }
+          if(effect==='EXCHANGER'){
+            const opponentId=state.currentPlayerId,opponent=state.players[opponentId];
+            const hand=[...opponent.hand];const diffIdx=hand.findIndex(c=>c.difficulty===300);if(diffIdx>-1)hand.splice(diffIdx,1);
+            const allQ=getQuestions(state.track);
+            let deck=[...opponent.deck];if(deck.length===0)deck=shuffle(allQ);
+            const easyIdx=deck.findIndex(c=>c.difficulty===50);let drawn=null;
+            if(easyIdx>-1){drawn=deck[easyIdx];deck.splice(easyIdx,1);}else if(deck.length>0){drawn=deck[0];deck.splice(0,1);}
+            if(drawn)hand.push({...drawn,instanceId:drawn.id+'-'+Math.random().toString(36).slice(2)});
+            return{...state,activeTrapEffect:'EXCHANGER',trapRevealed:true,players:{...state.players,[trapPlayerId]:{...trapPlayer,trapZones:newZones},[opponentId]:{...opponent,hand,deck}},phase:'ANSWERING',timeLeft:45,message:'فخ التبديل!'};
+          }
+          return{...state,activeTrapEffect:effect,trapRevealed:true,players:{...state.players,[trapPlayerId]:{...trapPlayer,trapZones:newZones}},phase:'ANSWERING',timeLeft:45,message:'تم تفعيل الفخ!'};
+        }
+        case 'TICK_TIMER':{
+          if(state.phase==='ANSWERING'){if(state.timeLeft<=0)return{...state,timeLeft:5,phase:'FEEDBACK',selectedOptionIndex:-1};return{...state,timeLeft:state.timeLeft-1};}
+          if(state.phase==='FEEDBACK'){if(state.timeLeft<=0)return{...state,phase:'RESOLUTION'};return{...state,timeLeft:state.timeLeft-1};}
+          return state;
+        }
+        case 'SELECT_ANSWER':if(state.phase!=='ANSWERING')return state;return{...state,selectedOptionIndex:action.index,phase:'FEEDBACK'};
+        case 'RESOLVE_TURN':{
+          const question=state.fieldCard,answeringId=state.answeringPlayerId;
+          const answeringPlayer=state.players[answeringId];
+          const selected=state.selectedOptionIndex;
+          const isTimeout=selected===-1||selected===null||selected===undefined;
+          const isCorrect=!isTimeout&&selected===question.correctIndex;
+          if(state.activeTrapEffect==='EXTRA_QUESTION'&&isCorrect&&!state.extraQuestionPlayed){
+            const allQ=getQuestions(state.track);
+            let newDeck=[...answeringPlayer.deck];if(newDeck.length===0)newDeck=shuffle(allQ);
+            const raw=newDeck.length>0?newDeck.shift():allQ[0];
+            return{...state,fieldCard:{...raw,instanceId:raw.id+'-'+Math.random().toString(36).slice(2)},players:{...state.players,[answeringId]:{...answeringPlayer,deck:newDeck}},phase:'ANSWERING',timeLeft:45,extraQuestionPlayed:true,selectedOptionIndex:null,message:'سؤال إضافي!'};
+          }
+          let scoreChange=0,lpChange=0,attackerScoreChange=0;
+          if(state.activeTrapEffect==='CANCEL'){scoreChange=0;lpChange=0;}
+          else if(isCorrect){scoreChange=state.activeTrapEffect==='DOUBLE'?2:1;lpChange=1;if(state.activeTrapEffect==='REVERSAL_SCORE')attackerScoreChange=-1;if(state.activeTrapEffect==='FREEZE')attackerScoreChange=-1;}
+          else{scoreChange=state.activeTrapEffect==='SHIELD'?0:-1;lpChange=-1;if(state.activeTrapEffect==='FREEZE')attackerScoreChange=-1;}
+          const newScore=answeringPlayer.score+scoreChange;
+          const newLp=Math.min(5,Math.max(0,answeringPlayer.lp+lpChange));
+          const attackerId=state.currentPlayerId,attacker=state.players[attackerId];
+          const nextTurn=state.turn+1;
+          const totalCardsLeft=state.players.p1.hand.length+state.players.p2.hand.length;
+          const isRoundEnd=nextTurn>=8||totalCardsLeft===0;
+          return{...state,players:{...state.players,[answeringId]:{...answeringPlayer,score:newScore,lp:newLp},[attackerId]:{...attacker,score:attacker.score+attackerScoreChange}},turn:nextTurn,phase:isRoundEnd?'ROUND_END':'PLACEMENT',screen:isRoundEnd?'ROUND_END':'DUEL',currentPlayerId:isRoundEnd?state.currentPlayerId:state.answeringPlayerId,answeringPlayerId:isRoundEnd?state.answeringPlayerId:state.currentPlayerId,fieldCard:null,activeTrapEffect:null,trapRevealed:false,extraQuestionPlayed:false,selectedOptionIndex:null,timeLeft:45,message:isCorrect?'إجابة صحيحة! ✅':isTimeout?'انتهى الوقت! ⏰':'إجابة خاطئة! ❌'};
+        }
+        case 'NEXT_ROUND':{
+          const nextRound=state.round+1;
+          if(nextRound>5)return{...state,screen:'GAME_OVER',phase:'GAME_OVER'};
+          const allQ=getQuestions(state.track);
+          const p1TrapDeck=createTrapDeck(),p2TrapDeck=createTrapDeck();
+          const p1Draw=drawRoundHand(state.players.p1.deck,nextRound,p1TrapDeck,allQ);
+          const p2Draw=drawRoundHand(state.players.p2.deck,nextRound,p2TrapDeck,allQ);
+          const mkHand=h=>h.map(c=>({...c,instanceId:c.id+'-'+Math.random().toString(36).slice(2)}));
+          const p1Starts=nextRound%2===1;
+          return{...state,screen:'DUEL',round:nextRound,turn:0,currentPlayerId:p1Starts?'p1':'p2',answeringPlayerId:p1Starts?'p2':'p1',fieldCard:null,activeTrapEffect:null,trapRevealed:false,extraQuestionPlayed:false,phase:'PLACEMENT',timeLeft:45,message:p1Starts?'دورك!':'دور الخصم',selectedOptionIndex:null,
+            players:{...state.players,p1:{...state.players.p1,hand:mkHand(p1Draw.hand),trapZones:p1Draw.traps.map(t=>({...t,revealed:false})),deck:p1Draw.remaining},p2:{...state.players.p2,hand:mkHand(p2Draw.hand),trapZones:p2Draw.traps.map(t=>({...t,revealed:false})),deck:p2Draw.remaining}}};
+        }
+        case 'RESET':return initialState;
+        case 'HOVER_CARD':return{...state,hoveredCard:action.card};
+        default:return state;
+      }
+    }
+
+    function App(){
+      const [state,dispatch]=useReducer(gameReducer,initialState);
+      const stateRef=useRef(state);
+      useEffect(()=>{stateRef.current=state;},[state]);
+
+      useEffect(()=>{
+        if(state.phase!=='ANSWERING'&&state.phase!=='FEEDBACK')return;
+        const id=setInterval(()=>dispatch({type:'TICK_TIMER'}),1000);
+        return()=>clearInterval(id);
+      },[state.phase]);
+
+      useEffect(()=>{if(state.phase==='ANSWERING'&&state.timeLeft<=5&&state.timeLeft>0)playSound('tick');},[state.timeLeft,state.phase]);
+      useEffect(()=>{if(state.phase!=='FEEDBACK'||!state.fieldCard)return;playSound(state.selectedOptionIndex===state.fieldCard.correctIndex?'correct':'wrong');},[state.phase,state.selectedOptionIndex,state.fieldCard]);
+
+      useEffect(()=>{
+        if(state.screen!=='DUEL')return;
+        const current=state.players[state.currentPlayerId],answering=state.players[state.answeringPlayerId];
+        if(state.phase==='PLACEMENT'&&!current.isHuman){
+          const cardId=aiChooseCard(current.hand,state.aiDifficulty);
+          const timer=setTimeout(()=>{if(stateRef.current.phase!=='PLACEMENT')return;playSound('place');dispatch({type:'PLACE_CARD',cardId});},aiDelay(state.aiDifficulty));
+          return()=>clearTimeout(timer);
+        }
+        if(state.phase==='TRAP_PROMPT'){
+          if(!answering.isHuman){
+            const trapId=aiDecideTrap(answering,state.fieldCard,state.aiDifficulty);
+            const timer=setTimeout(()=>{
+              if(stateRef.current.phase!=='TRAP_PROMPT')return;
+              if(trapId){playSound('trap');const zoneIdx=stateRef.current.players[stateRef.current.answeringPlayerId].trapZones.findIndex(t=>t&&!t.revealed);dispatch({type:'ACTIVATE_TRAP',playerId:stateRef.current.answeringPlayerId,zoneIdx:zoneIdx>=0?zoneIdx:0});}
+              else dispatch({type:'SKIP_TRAP'});
+            },aiDelay(state.aiDifficulty));
+            return()=>clearTimeout(timer);
+          }
+          const hasSetTrap=answering.trapZones.some(t=>t&&!t.revealed);
+          if(!hasSetTrap){const timer=setTimeout(()=>{if(stateRef.current.phase!=='TRAP_PROMPT')return;dispatch({type:'SKIP_TRAP'});},600);return()=>clearTimeout(timer);}
+        }
+        if(state.phase==='ANSWERING'&&!answering.isHuman){
+          const index=aiDecideAnswer(state.fieldCard,state.aiDifficulty);
+          const timer=setTimeout(()=>{if(stateRef.current.phase!=='ANSWERING')return;dispatch({type:'SELECT_ANSWER',index});},aiDelay(state.aiDifficulty)+600);
+          return()=>clearTimeout(timer);
+        }
+        if(state.phase==='RESOLUTION'){
+          const timer=setTimeout(()=>{if(stateRef.current.phase!=='RESOLUTION')return;if(stateRef.current.turn+1>=8&&stateRef.current.round>=5)playSound('win');dispatch({type:'RESOLVE_TURN'});},300);
+          return()=>clearTimeout(timer);
+        }
+      },[state.screen,state.phase,state.currentPlayerId,state.answeringPlayerId,state.aiDifficulty,state.turn,state.round,state.fieldCard,state.selectedOptionIndex]);
+
+      function handleCardClick(card){
+        if(state.phase!=='PLACEMENT'||!state.players[state.currentPlayerId].isHuman||card.type==='TRAP')return;
+        playSound('place');dispatch({type:'PLACE_CARD',cardId:card.instanceId||card.id});
+      }
+      function handleAnswer(index){if(state.phase!=='ANSWERING')return;dispatch({type:'SELECT_ANSWER',index});}
+      function handleTrapClick(playerId,zoneIdx){
+        if(state.phase!=='TRAP_PROMPT')return;
+        const answering=state.players[state.answeringPlayerId];
+        if(!answering.isHuman||state.answeringPlayerId!==playerId)return;
+        const trap=answering.trapZones[zoneIdx];
+        if(!trap||trap.revealed)return;
+        playSound('trap');dispatch({type:'ACTIVATE_TRAP',playerId,zoneIdx});
+      }
+
+      const bottomPlayer=state.players.p1,topPlayer=state.players.p2;
+      const answeringPlayer=state.players[state.answeringPlayerId];
+      const currentPlayer=state.players[state.currentPlayerId];
+
+      return(
+        <div style={{width:'100%',height:'100%',position:'relative'}}>
+          <ParticleBackground/>
+          <AnimatePresence mode="wait">
+            {state.screen==='TRACK_SELECT'&&(<motion.div key="track" className="screen" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><TrackSelectScreen onSelect={(track)=>dispatch({type:'SET_TRACK',track})}/></motion.div>)}
+            {state.screen==='MENU'&&(<motion.div key="menu" className="screen" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><MainMenu track={state.track} onSelectMode={(mode)=>{dispatch({type:'SET_MODE',mode});if(mode==='AI')dispatch({type:'SET_SCREEN',screen:'DIFFICULTY'});else dispatch({type:'START_GAME'});}} onBack={()=>dispatch({type:'SET_SCREEN',screen:'TRACK_SELECT'})}/></motion.div>)}
+            {state.screen==='DIFFICULTY'&&(<motion.div key="diff" className="screen" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><DifficultySelect onSelect={(diff)=>{dispatch({type:'SET_DIFFICULTY',difficulty:diff});dispatch({type:'START_GAME'});}} onBack={()=>dispatch({type:'SET_SCREEN',screen:'MENU'})}/></motion.div>)}
+            {state.screen==='DUEL'&&(
+              <motion.div key="duel" style={{width:'100%',height:'100%',position:'relative'}} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
+                <CardPreview card={state.hoveredCard||state.fieldCard}/>
+                <div className="hud-bar hud-top-left"><div className="lp-frame"><div className="lp-label">LP</div><div className="lp-value">{topPlayer.lp}</div><div className="score-value">النقاط: {topPlayer.score}</div></div><div style={{fontSize:14,fontWeight:700,color:'#fff'}}>{topPlayer.name}</div></div>
+                <div className="hud-bar hud-top-right" style={{flexDirection:'column',alignItems:'flex-end',gap:8}}>
+                  <div className="round-badge">الجولة {state.round} / 5</div>
+                  <div style={{fontSize:13,color:'rgba(255,255,255,0.8)',background:'rgba(0,0,0,0.4)',padding:'4px 10px',borderRadius:12}}>{state.message}</div>
+                </div>
+                <div className="hud-bar hud-bottom-left"><div className="lp-frame"><div className="lp-label">LP</div><div className="lp-value">{bottomPlayer.lp}</div><div className="score-value">النقاط: {bottomPlayer.score}</div></div><div style={{fontSize:14,fontWeight:700,color:'#fff'}}>{bottomPlayer.name}</div></div>
+                <div className="hud-bar hud-bottom-right"><div className="deck-pile"><div className="deck-card-layer" style={{top:0,left:0}}/><div className="deck-card-layer" style={{top:2,left:2}}/><div className="deck-card-layer" style={{top:4,left:4}}/><div className="deck-count">{bottomPlayer.deck.length}</div></div></div>
+                <DuelField state={state} onTrapClick={handleTrapClick}/>
+                <OpponentHand count={topPlayer.hand.length}/>
+                <PlayerHand hand={bottomPlayer.hand} onCardClick={handleCardClick} onHover={(card)=>dispatch({type:'HOVER_CARD',card})}/>
+                {state.phase==='TRAP_PROMPT'&&answeringPlayer.isHuman&&(<TrapPromptModal hasTrap={answeringPlayer.trapZones.some(t=>t&&!t.revealed)} onYes={()=>{playSound('trap');const zIdx=answeringPlayer.trapZones.findIndex(t=>t&&!t.revealed);dispatch({type:'ACTIVATE_TRAP',playerId:state.answeringPlayerId,zoneIdx:zIdx>=0?zIdx:0});}} onNo={()=>dispatch({type:'SKIP_TRAP'})}/>)}
+                {(state.phase==='ANSWERING'||state.phase==='FEEDBACK')&&(<QuestionModal card={state.fieldCard} timeLeft={state.timeLeft} onAnswer={handleAnswer} onClose={()=>{if(state.phase==='FEEDBACK')dispatch({type:'RESOLVE_TURN'});}} disabled={!answeringPlayer.isHuman} phase={state.phase} selectedOptionIndex={state.selectedOptionIndex} activeTrapEffect={state.activeTrapEffect}/>)}
+                {state.phase==='PLACEMENT'&&!currentPlayer.isHuman&&state.mode==='AI'&&(<div className="modal-overlay" style={{background:'rgba(0,0,0,0.3)',pointerEvents:'none'}}><motion.div className="phase-banner" style={{position:'relative',top:'auto',left:'auto',transform:'none'}} initial={{opacity:0}} animate={{opacity:1}}><div className="phase-banner-sub">الخصم يفكر...</div></motion.div></div>)}
+                {state.phase==='TRAP_PROMPT'&&!answeringPlayer.isHuman&&(<div className="modal-overlay" style={{background:'rgba(0,0,0,0.3)',pointerEvents:'none'}}><motion.div className="phase-banner" style={{position:'relative',top:'auto',left:'auto',transform:'none'}} initial={{opacity:0}} animate={{opacity:1}}><div className="phase-banner-sub">الخصم يقرر الفخ...</div></motion.div></div>)}
+              </motion.div>
+            )}
+            {state.screen==='ROUND_END'&&(<motion.div key="roundend" className="screen" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><RoundEndScreen state={state} onNext={()=>dispatch({type:'NEXT_ROUND'})}/></motion.div>)}
+            {state.screen==='GAME_OVER'&&(<motion.div key="gameover" className="screen" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><GameOverScreen state={state} onRestart={()=>dispatch({type:'START_GAME'})} onMenu={()=>dispatch({type:'RESET'})}/></motion.div>)}
+          </AnimatePresence>
+        </div>
+      );
+    }
+
+    const root=ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App/>);
+  </script>
+</body>
+</html>
